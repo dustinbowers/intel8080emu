@@ -17,9 +17,13 @@ func (cpu *CPU) mov(info *stepInfo) uint {
 
 	var destPtr, srcPtr *uint8
 	destPtr, memAccess := cpu.getOpcodeRegPtr(ddd)
-	if memAccess { cycles = 7 }
+	if memAccess {
+		cycles = 7
+	}
 	srcPtr, memAccess = cpu.getOpcodeRegPtr(sss)
-	if memAccess { cycles = 7 }
+	if memAccess {
+		cycles = 7
+	}
 
 	*destPtr = *srcPtr // Maybe check this for nil-dereference? (it should be impossible, though)
 	return cycles
@@ -153,7 +157,7 @@ func (cpu *CPU) add(info *stepInfo) uint {
 	}
 	result := cpu.A + *regPtr
 	cpu.Zero = result == 0
-	cpu.Sign = result & 0b10000000 != 0
+	cpu.Sign = result&0b10000000 != 0
 	cpu.Parity = getParity(result)
 	cpu.AuxCarry = ((cpu.A ^ result ^ *regPtr) & 0b00010000) > 0 // ?? TODO: test this
 
@@ -168,13 +172,20 @@ func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) (*uint8, bool) {
 	var ptr *uint8
 	memoryAccess := false
 	switch regIndicator {
-	case 0b111: ptr = &cpu.A
-	case 0b000: ptr = &cpu.B
-	case 0b001: ptr = &cpu.C
-	case 0b010: ptr = &cpu.D
-	case 0b011: ptr = &cpu.E
-	case 0b100: ptr = &cpu.H
-	case 0b101: ptr = &cpu.L
+	case 0b111:
+		ptr = &cpu.A
+	case 0b000:
+		ptr = &cpu.B
+	case 0b001:
+		ptr = &cpu.C
+	case 0b010:
+		ptr = &cpu.D
+	case 0b011:
+		ptr = &cpu.E
+	case 0b100:
+		ptr = &cpu.H
+	case 0b101:
+		ptr = &cpu.L
 	case 0b110:
 		memoryAccess = true
 		memOffset := (uint16(cpu.H) << 8) | uint16(cpu.L)
@@ -190,7 +201,7 @@ func (cpu *CPU) getOpcodeArgs(PC uint16) (byte1, byte2 uint8) {
 func getParity(b uint8) bool {
 	ones := uint8(0)
 	// TODO: this could be optimized...
-	for i:=0; i < 8; i++ {
+	for i := 0; i < 8; i++ {
 		ones += (b >> 0) & 0b1
 	}
 	return (ones & 0b1) == 0
@@ -205,4 +216,3 @@ func getOpcodeDDDSSS(opcode uint8) (ddd uint8, sss uint8) {
 	sss = opcode & 0b111
 	return ddd, sss
 }
-

@@ -28,8 +28,8 @@ type CPU struct {
 	table []func(*stepInfo) uint
 }
 
-type stepInfo struct{
-	PC uint16
+type stepInfo struct {
+	PC     uint16
 	opcode uint8
 }
 
@@ -40,7 +40,7 @@ var instructionNames = []string{
 	"ill", "dad d", "ldax d", "dcx d", "inr e", "dcr e", "mvi e,#", "rar",
 	"ill", "lxi h,#", "shld", "inx h", "inr h", "dcr h", "mvi h,#", "daa",
 	"ill", "dad h", "lhld", "dcx h", "inr l", "dcr l", "mvi l,#", "cma",
-	"ill", "lxi sp,#","sta $", "inx sp", "inr M", "dcr M", "mvi M,#", "stc",
+	"ill", "lxi sp,#", "sta $", "inx sp", "inr M", "dcr M", "mvi M,#", "stc",
 	"ill", "dad sp", "lda $", "dcx sp", "inr a", "dcr a", "mvi a,#", "cmc",
 	"mov b,b", "mov b,c", "mov b,d", "mov b,e", "mov b,h", "mov b,l",
 	"mov b,M", "mov b,a", "mov c,b", "mov c,c", "mov c,d", "mov c,e",
@@ -66,7 +66,7 @@ var instructionNames = []string{
 	"push d", "sui #", "rst 2", "rc", "ill", "jc $", "in p", "cc $", "ill",
 	"sbi #", "rst 3", "rpo", "pop h", "jpo $", "xthl", "cpo $", "push h",
 	"ani #", "rst 4", "rpe", "pchl", "jpe $", "xchg", "cpe $", "ill", "xri #",
-	"rst 5", "rp", "pop psw", "jp $", "di", "cp $", "push psw","ori #",
+	"rst 5", "rp", "pop psw", "jp $", "di", "cp $", "push psw", "ori #",
 	"rst 6", "rm", "sphl", "jm $", "ei", "cm $", "ill", "cpi #", "rst 7",
 }
 

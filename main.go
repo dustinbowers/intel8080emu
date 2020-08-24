@@ -29,8 +29,7 @@ func main() {
 		cpu.Step()
 
 		// TODO: update this to 2 MHz
-		time.Sleep((1000/30) * time.Millisecond)
+		time.Sleep((1000 / 30) * time.Millisecond)
 	}
 
 }
-

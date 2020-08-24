@@ -9,7 +9,7 @@ func (cpu *CPU) Step() (uint, error) {
 	opcode := cpu.Read(cpu.PC)
 	opcodeFunc := cpu.table[opcode]
 	stepInfo := stepInfo{
-		PC: cpu.PC,
+		PC:     cpu.PC,
 		opcode: opcode,
 	}
 
@@ -20,7 +20,6 @@ func (cpu *CPU) Step() (uint, error) {
 	// Execute current opcode
 	cpu.PC += uint16(instructionBytes[opcode])
 	cycles := opcodeFunc(&stepInfo)
-
 
 	return cycles, nil
 }
