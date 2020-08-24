@@ -1,6 +1,8 @@
 package intel8080
 
-import "log"
+import (
+	"log"
+)
 
 func (cpu *CPU) nop(info *stepInfo) uint {
 	return 4
@@ -153,8 +155,8 @@ func (cpu *CPU) add(info *stepInfo) uint {
 
 	result := uint16(cpu.A) + uint16(*regPtr)
 	cpu.Zero = (result & 0xFF) == 0
-	cpu.Sign = result & 0b10000000 != 0
-	cpu.Carry = result & 0b100000000 != 0
+	cpu.Sign = result&0b10000000 != 0
+	cpu.Carry = result&0b100000000 != 0
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
 	cpu.A = uint8(result & 0xFF)
@@ -175,8 +177,8 @@ func (cpu *CPU) adc(info *stepInfo) uint {
 	}
 	result := uint16(cpu.A) + uint16(*regPtr) + carryVal
 	cpu.Zero = (result & 0xFF) == 0
-	cpu.Sign = result & 0b10000000 != 0
-	cpu.Carry = result & 0b100000000 != 0
+	cpu.Sign = result&0b10000000 != 0
+	cpu.Carry = result&0b100000000 != 0
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
 	cpu.A = uint8(result & 0xFF)
@@ -188,8 +190,8 @@ func (cpu *CPU) adi(info *stepInfo) uint {
 
 	result := uint16(cpu.A) + uint16(db)
 	cpu.Zero = (result & 0xFF) == 0
-	cpu.Sign = result & 0b10000000 != 0
-	cpu.Carry = result & 0b100000000 != 0
+	cpu.Sign = result&0b10000000 != 0
+	cpu.Carry = result&0b100000000 != 0
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
@@ -206,8 +208,8 @@ func (cpu *CPU) aci(info *stepInfo) uint {
 	}
 	result := uint16(cpu.A) + uint16(db) + carryVal
 	cpu.Zero = (result & 0xFF) == 0
-	cpu.Sign = result & 0b10000000 != 0
-	cpu.Carry = result & 0b100000000 != 0
+	cpu.Sign = result&0b10000000 != 0
+	cpu.Carry = result&0b100000000 != 0
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
@@ -217,7 +219,7 @@ func (cpu *CPU) aci(info *stepInfo) uint {
 
 func (cpu *CPU) push(info *stepInfo) uint {
 	rp := getOpcodeRP(info.opcode)
-	var hb,lb uint8
+	var hb, lb uint8
 	switch rp {
 	case 0x00:
 		hb, lb = cpu.B, cpu.C
@@ -233,13 +235,18 @@ func (cpu *CPU) push(info *stepInfo) uint {
 	cpu.SP--
 	cpu.Memory[cpu.SP] = lb
 
-
 	return 0
 }
 
 func (cpu *CPU) call(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
-	// TODO: push PC and decrement the stack pointer
+
+	pclo, pchi := uint8(cpu.PC&0xFF), uint8(cpu.PC>>8&0xFF)
+	cpu.SP--
+	cpu.Memory[cpu.SP] = pclo // TODO: make sure this byte order is correct....
+	cpu.SP--
+	cpu.Memory[cpu.SP] = pchi
+
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
 	return 17
 }

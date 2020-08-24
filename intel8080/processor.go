@@ -46,7 +46,6 @@ func (cpu *CPU) sub(info *stepInfo) uint {
 
 func (cpu *CPU) ana(info *stepInfo) uint {
 
-
 	return 0
 }
 
