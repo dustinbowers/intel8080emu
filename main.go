@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello, Invaders!")
+	fmt.Println("Launching...")
 
 	cpu := intel8080.NewCPU()
 	cpu.DEBUG = true
@@ -25,7 +25,6 @@ func main() {
 			continue
 		}
 
-		log.Println("Tick...")
 		cpu.Step()
 
 		// TODO: update this to 2 MHz

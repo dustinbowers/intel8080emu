@@ -23,6 +23,7 @@ type CPU struct {
 
 	// Flags
 	Sign, Zero, Parity, Carry, AuxCarry bool
+	InterruptsEnabled bool
 
 	// op table
 	table []func(*stepInfo) uint

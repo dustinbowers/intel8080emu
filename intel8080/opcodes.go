@@ -36,11 +36,6 @@ func (cpu *CPU) jmp(info *stepInfo) uint {
 	return 10
 }
 
-func (cpu *CPU) adc(info *stepInfo) uint {
-
-	return 0
-}
-
 func (cpu *CPU) inr(info *stepInfo) uint {
 	var cycles uint = 5
 	ddd, _ := getOpcodeDDDSSS(info.opcode)
@@ -155,14 +150,167 @@ func (cpu *CPU) add(info *stepInfo) uint {
 	if memAccess {
 		cycles = 7
 	}
-	result := cpu.A + *regPtr
-	cpu.Zero = result == 0
-	cpu.Sign = result&0b10000000 != 0
-	cpu.Parity = getParity(result)
-	cpu.AuxCarry = ((cpu.A ^ result ^ *regPtr) & 0b00010000) > 0 // ?? TODO: test this
 
-	cpu.A = result
+	result := uint16(cpu.A) + uint16(*regPtr)
+	cpu.Zero = (result & 0xFF) == 0
+	cpu.Sign = result & 0b10000000 != 0
+	cpu.Carry = result & 0b100000000 != 0
+	cpu.Parity = getParity(uint8(result & 0b11111111))
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.A = uint8(result & 0xFF)
 	return cycles
+}
+
+func (cpu *CPU) adc(info *stepInfo) uint {
+	var cycles uint = 4
+	_, sss := getOpcodeDDDSSS(info.opcode)
+	regPtr, memAccess := cpu.getOpcodeRegPtr(sss)
+	if memAccess {
+		cycles = 7
+	}
+
+	carryVal := uint16(0)
+	if cpu.Carry {
+		carryVal = 1
+	}
+	result := uint16(cpu.A) + uint16(*regPtr) + carryVal
+	cpu.Zero = (result & 0xFF) == 0
+	cpu.Sign = result & 0b10000000 != 0
+	cpu.Carry = result & 0b100000000 != 0
+	cpu.Parity = getParity(uint8(result & 0b11111111))
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.A = uint8(result & 0xFF)
+	return cycles
+}
+
+func (cpu *CPU) adi(info *stepInfo) uint {
+	db, _ := cpu.getOpcodeArgs(info.PC)
+
+	result := uint16(cpu.A) + uint16(db)
+	cpu.Zero = (result & 0xFF) == 0
+	cpu.Sign = result & 0b10000000 != 0
+	cpu.Carry = result & 0b100000000 != 0
+	cpu.Parity = getParity(uint8(result & 0b11111111))
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
+
+	cpu.A += db
+	return 7
+}
+
+func (cpu *CPU) aci(info *stepInfo) uint {
+	db, _ := cpu.getOpcodeArgs(info.PC)
+
+	carryVal := uint16(0)
+	if cpu.Carry {
+		carryVal = 1
+	}
+	result := uint16(cpu.A) + uint16(db) + carryVal
+	cpu.Zero = (result & 0xFF) == 0
+	cpu.Sign = result & 0b10000000 != 0
+	cpu.Carry = result & 0b100000000 != 0
+	cpu.Parity = getParity(uint8(result & 0b11111111))
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
+
+	cpu.A += db
+	return 7
+}
+
+func (cpu *CPU) push(info *stepInfo) uint {
+	rp := getOpcodeRP(info.opcode)
+	var hb,lb uint8
+	switch rp {
+	case 0x00:
+		hb, lb = cpu.B, cpu.C
+	case 0x01:
+		hb, lb = cpu.D, cpu.E
+	case 0x10:
+		hb, lb = cpu.H, cpu.L
+	case 0x11:
+		hb, lb = cpu.A, cpu.getProgramStatus()
+	}
+	cpu.SP--
+	cpu.Memory[cpu.SP] = hb
+	cpu.SP--
+	cpu.Memory[cpu.SP] = lb
+
+
+	return 0
+}
+
+func (cpu *CPU) call(info *stepInfo) uint {
+	lb, hb := cpu.getOpcodeArgs(info.PC)
+	// TODO: push PC and decrement the stack pointer
+	cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	return 17
+}
+
+func (cpu *CPU) jz(info *stepInfo) uint {
+	if cpu.Zero {
+		lb, hb := cpu.getOpcodeArgs(info.PC)
+		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	}
+	return 10
+}
+
+func (cpu *CPU) jnz(info *stepInfo) uint {
+	if cpu.Zero == false {
+		lb, hb := cpu.getOpcodeArgs(info.PC)
+		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	}
+	return 10
+}
+
+func (cpu *CPU) jc(info *stepInfo) uint {
+	if cpu.Carry {
+		lb, hb := cpu.getOpcodeArgs(info.PC)
+		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	}
+	return 10
+}
+
+func (cpu *CPU) jnc(info *stepInfo) uint {
+	if cpu.Carry == false {
+		lb, hb := cpu.getOpcodeArgs(info.PC)
+		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	}
+	return 10
+}
+
+func (cpu *CPU) jm(info *stepInfo) uint {
+	if cpu.Sign {
+		lb, hb := cpu.getOpcodeArgs(info.PC)
+		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	}
+	return 10
+}
+
+func (cpu *CPU) jp(info *stepInfo) uint {
+	if cpu.Sign == false {
+		lb, hb := cpu.getOpcodeArgs(info.PC)
+		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	}
+	return 10
+}
+
+func (cpu *CPU) jpe(info *stepInfo) uint {
+	if cpu.Parity {
+		lb, hb := cpu.getOpcodeArgs(info.PC)
+		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	}
+	return 10
+}
+
+func (cpu *CPU) jpo(info *stepInfo) uint {
+	if cpu.Parity == false {
+		lb, hb := cpu.getOpcodeArgs(info.PC)
+		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	}
+	return 10
+}
+
+func (cpu *CPU) stc(info *stepInfo) uint {
+	cpu.Carry = true
+	return 4
 }
 
 // ----------------------------
@@ -196,6 +344,27 @@ func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) (*uint8, bool) {
 
 func (cpu *CPU) getOpcodeArgs(PC uint16) (byte1, byte2 uint8) {
 	return cpu.Memory[PC+1], cpu.Memory[PC+2]
+}
+
+func (cpu *CPU) getProgramStatus() uint8 {
+	// S, Z, 0, AC, 0, P, 1, CY
+	status := uint8(0b00000010)
+	if cpu.Sign {
+		status |= 1 << 7
+	}
+	if cpu.Zero {
+		status |= 1 << 6
+	}
+	if cpu.AuxCarry {
+		status |= 1 << 4
+	}
+	if cpu.Parity {
+		status |= 1 << 2
+	}
+	if cpu.Carry {
+		status |= 1 << 0
+	}
+	return status
 }
 
 func getParity(b uint8) bool {

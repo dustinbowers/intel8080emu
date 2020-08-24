@@ -38,12 +38,14 @@ func (cpu *CPU) GetInstructionInfo() string {
 
 // TODO stubs
 /////////////
+///*
 func (cpu *CPU) sub(info *stepInfo) uint {
 
 	return 0
 }
 
 func (cpu *CPU) ana(info *stepInfo) uint {
+
 
 	return 0
 }
@@ -123,11 +125,6 @@ func (cpu *CPU) daa(info *stepInfo) uint {
 	return 0
 }
 
-func (cpu *CPU) stc(info *stepInfo) uint {
-
-	return 0
-}
-
 func (cpu *CPU) dad(info *stepInfo) uint {
 
 	return 0
@@ -159,26 +156,6 @@ func (cpu *CPU) cmc(info *stepInfo) uint {
 }
 
 func (cpu *CPU) pop(info *stepInfo) uint {
-
-	return 0
-}
-
-func (cpu *CPU) jnz(info *stepInfo) uint {
-
-	return 0
-}
-
-func (cpu *CPU) jnc(info *stepInfo) uint {
-
-	return 0
-}
-
-func (cpu *CPU) jpo(info *stepInfo) uint {
-
-	return 0
-}
-
-func (cpu *CPU) jp(info *stepInfo) uint {
 
 	return 0
 }
@@ -218,17 +195,7 @@ func (cpu *CPU) cp(info *stepInfo) uint {
 	return 0
 }
 
-func (cpu *CPU) push(info *stepInfo) uint {
-
-	return 0
-}
-
 func (cpu *CPU) ori(info *stepInfo) uint {
-
-	return 0
-}
-
-func (cpu *CPU) adi(info *stepInfo) uint {
 
 	return 0
 }
@@ -278,32 +245,12 @@ func (cpu *CPU) sphl(info *stepInfo) uint {
 	return 0
 }
 
-func (cpu *CPU) jz(info *stepInfo) uint {
-
-	return 0
-}
-
-func (cpu *CPU) jc(info *stepInfo) uint {
-
-	return 0
-}
-
 func (cpu *CPU) pchl(info *stepInfo) uint {
 
 	return 0
 }
 
-func (cpu *CPU) jm(info *stepInfo) uint {
-
-	return 0
-}
-
 func (cpu *CPU) in(info *stepInfo) uint {
-
-	return 0
-}
-
-func (cpu *CPU) jpe(info *stepInfo) uint {
 
 	return 0
 }
@@ -328,16 +275,6 @@ func (cpu *CPU) cm(info *stepInfo) uint {
 	return 0
 }
 
-func (cpu *CPU) call(info *stepInfo) uint {
-
-	return 0
-}
-
-func (cpu *CPU) aci(info *stepInfo) uint {
-
-	return 0
-}
-
 func (cpu *CPU) sbi(info *stepInfo) uint {
 
 	return 0
@@ -357,3 +294,5 @@ func (cpu *CPU) cpi(info *stepInfo) uint {
 
 	return 0
 }
+
+/**/
