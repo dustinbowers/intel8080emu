@@ -1,5 +1,7 @@
 # Intel 8080
 
+The beginnings of an Intel 8080 emulator
+
 ## References
 https://pastraiser.com//cpu/i8080/i8080_opcodes.html
 
