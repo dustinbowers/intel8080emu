@@ -34,7 +34,6 @@ func main() {
 		}
 	}()
 
-
 	screenCols := 256
 	screenRows := 224
 	screenWidth := 512
