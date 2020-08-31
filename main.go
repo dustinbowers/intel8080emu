@@ -18,17 +18,20 @@ func main() {
 	}
 
 	fmt.Println("Starting tick loop")
-	holdCycles := 0
+	var holdCycles uint
+	sleepTime := (1000 / 1000) * time.Millisecond
 	for {
 		if holdCycles > 0 {
 			holdCycles--
+			time.Sleep(sleepTime)
 			continue
 		}
 
-		cpu.Step()
+		holdCycles, _ = cpu.Step()
 
 		// TODO: update this to 2 MHz
-		time.Sleep((1000 / 30) * time.Millisecond)
+		time.Sleep(sleepTime)
+
 	}
 
 }

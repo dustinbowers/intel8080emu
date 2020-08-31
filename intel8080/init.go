@@ -135,7 +135,7 @@ func (cpu *CPU) LoadInvaders(filepath string) error {
 	offset := 0
 	for _, filename := range files {
 		romPath := filepath + filename
-		fmt.Println("loading %s", romPath)
+		fmt.Printf("loading %s\n", romPath)
 		data, err := ioutil.ReadFile(romPath)
 		if err != nil {
 			return fmt.Errorf("loadRom: failed reading file: %v", err)
