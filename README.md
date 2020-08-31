@@ -1,6 +1,6 @@
 # Intel 8080
 
-The beginnings of an Intel 8080 emulator
+The beginnings of an Intel 8080 emulator, now with early stages of SDL
 
 ## References
 https://pastraiser.com//cpu/i8080/i8080_opcodes.html
