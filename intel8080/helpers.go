@@ -29,7 +29,7 @@ func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) (*uint8, bool) {
 	return ptr, memoryAccess
 }
 
-func (cpu *CPU) getOpcodeArgs(PC uint16) (byte1, byte2 uint8) {
+func (cpu *CPU) getOpcodeArgs(PC uint16) (uint8, uint8) {
 	return cpu.Memory[PC+1], cpu.Memory[PC+2]
 }
 
@@ -66,16 +66,18 @@ func getParity(b uint8) bool {
 	ones := uint8(0)
 	// TODO: this could be optimized...
 	for i := 0; i < 8; i++ {
-		ones += (b >> 0) & 0b1
+		ones += (b >> i) & 0b1
 	}
 	return (ones & 0b1) == 0
 }
 
 func getOpcodeRP(opcode uint8) uint8 {
+	// e.g. opcode: 0b00RP0011
 	return (opcode >> 4) & 0b11
 }
 
 func getOpcodeDDDSSS(opcode uint8) (ddd uint8, sss uint8) {
+	// e.g. opcode: 0b01DDDSSS
 	ddd = (opcode >> 3) & 0b111
 	sss = opcode & 0b111
 	return ddd, sss
