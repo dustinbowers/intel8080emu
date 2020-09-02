@@ -13,11 +13,14 @@ import (
 
 var cpu *intel8080.CPU
 
+var renderFlag bool
+
 func main() {
 	fmt.Println("Launching...")
 
-	cpu = intel8080.NewCPU()
-	cpu.DEBUG = true
+	ioBus := intel8080.NewIOBus()
+	cpu = intel8080.NewCPU(ioBus)
+	//cpu.DEBUG = true
 	err := cpu.LoadInvaders("roms/")
 	if err != nil {
 		log.Fatalf("load invaders failed: %v", err)
@@ -45,9 +48,9 @@ func main() {
 	startCPU()
 
 	running := true
-	vram := cpu.Memory[0x2400:0x4000]
+	//vram := cpu.Memory[0x2400:0x4000]
 	for running {
-		err := display.Draw(vram)
+
 		if err != nil {
 			log.Printf("display draw error: %v", err)
 			os.Exit(1)
@@ -61,7 +64,7 @@ func main() {
 				break
 			}
 		}
-		fmt.Printf(".")
+		//fmt.Printf(".")
 		time.Sleep(1000/60 * time.Millisecond)
 	}
 
@@ -69,9 +72,12 @@ func main() {
 
 func startCPU() {
 	go func() {
+		vram := cpu.Memory[0x2400:0x4000]
 		fmt.Println("Starting tick loop")
 		var holdCycles uint
-		sleepTime := (1000 / 1000) * time.Millisecond
+		var currCycles uint
+		var interruptType uint = 1
+		sleepTime := (1000 / 2000) * time.Millisecond
 		for {
 			if holdCycles > 0 {
 				holdCycles--
@@ -80,6 +86,22 @@ func startCPU() {
 			}
 
 			holdCycles, _ = cpu.Step()
+			currCycles += holdCycles
+
+
+			if currCycles > 16666 {
+				currCycles = 0
+				// toggle interrupt type between 1 and 2
+				if interruptType == 2 {
+					interruptType = 1
+					_ = display.Draw(vram)
+					fmt.Print(".")
+				} else if interruptType == 1 {
+					interruptType = 2
+				}
+				// trigger interrupt (this happens in hardware at VBlank and ~1/2 VBlank)
+				cpu.Interrupt(interruptType)
+			}
 
 			// TODO: update this to 2 MHz
 			time.Sleep(sleepTime)

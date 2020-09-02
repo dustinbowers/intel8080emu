@@ -4,9 +4,8 @@ import (
 	"testing"
 )
 
-var tCpu = NewCPU()
-
 func TestGetOpcodeRegPtr(t *testing.T) {
+	var tCpu = NewCPU(nil)
 	tCpu.H = 0xAA
 	tCpu.L = 0xBB
 	memOffset := (uint16(tCpu.H) << 8) | uint16(tCpu.L)
@@ -30,12 +29,11 @@ func TestGetOpcodeRegPtr(t *testing.T) {
 			gotMemoryAccess != tt.wantMemoryAccess {
 			t.Fatalf("ind: %d\n", i)
 		}
-
 	}
-
 }
 
 func TestGetOpcodeArgs(t *testing.T) {
+	var tCpu = NewCPU(nil)
 	PC := uint16(100)
 	tCpu.PC = PC
 	tCpu.Memory[PC + 0] = 0xAA
@@ -54,6 +52,7 @@ func TestGetOpcodeArgs(t *testing.T) {
 }
 
 func TestSetProgramStatus(t *testing.T) {
+	var tCpu = NewCPU(nil)
 	tests := []struct {
 		inPsw uint8
 		wantSign, wantZero, wantAuxCarry, wantParity, wantCarry bool
@@ -80,6 +79,7 @@ func TestSetProgramStatus(t *testing.T) {
 }
 
 func TestGetProgramStatus(t *testing.T) {
+	var tCpu = NewCPU(nil)
 	tests := []struct {
 		inSign bool
 		inZero bool

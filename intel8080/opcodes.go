@@ -4,15 +4,17 @@ import (
 	"log"
 )
 
-func (cpu *CPU) nop(info *stepInfo) uint {
+func (cpu *CPU) nop(_ *stepInfo) uint {
 	return 4
 }
 
-func (cpu *CPU) hlt(info *stepInfo) uint {
-	// TODO
+// HLT       01110110          -       Halt processor
+func (cpu *CPU) hlt(_ *stepInfo) uint {
+	// Note: Doesn't increase cpu.PC, which starts an infinite loop
 	return 7
 }
 
+// MOV D,S   01DDDSSS          -       Move register to register
 func (cpu *CPU) mov(info *stepInfo) uint {
 	var cycles uint = 5
 	ddd, sss := getOpcodeDDDSSS(info.opcode)
@@ -65,26 +67,28 @@ func (cpu *CPU) dcr(info *stepInfo) uint {
 	return cycles
 }
 
+// LXI RP,#  00RP0001 lb hb    -       Load register pair immediate
 func (cpu *CPU) lxi(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	rp := getOpcodeRP(info.opcode)
 
 	switch rp {
-	case 0x00:
+	case 0b00:
 		cpu.B = hb
 		cpu.C = lb
-	case 0x01:
+	case 0b01:
 		cpu.D = hb
 		cpu.E = lb
-	case 0x10:
+	case 0b10:
 		cpu.H = hb
 		cpu.L = lb
-	case 0x11:
+	case 0b11:
 		cpu.SP = (uint16(hb) << 8) | uint16(lb)
 	}
 	return 10
 }
 
+// LDA a     00111010 lb hb    -       Load A from memory
 func (cpu *CPU) lda(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	address := (uint16(hb) << 8) | uint16(lb)
@@ -92,6 +96,7 @@ func (cpu *CPU) lda(info *stepInfo) uint {
 	return 13
 }
 
+// STA a     00110010 lb hb    -       Store A to memory
 func (cpu *CPU) sta(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	address := (uint16(hb) << 8) | uint16(lb)
@@ -99,6 +104,7 @@ func (cpu *CPU) sta(info *stepInfo) uint {
 	return 13
 }
 
+// LHLD a    00101010 lb hb    -       Load H:L from memory
 func (cpu *CPU) lhld(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	address := (uint16(hb) << 8) | uint16(lb)
@@ -107,6 +113,7 @@ func (cpu *CPU) lhld(info *stepInfo) uint {
 	return 16
 }
 
+// SHLD a    00100010 lb hb    -       Store H:L to memory
 func (cpu *CPU) shld(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	address := (uint16(hb) << 8) | uint16(lb)
@@ -119,9 +126,9 @@ func (cpu *CPU) ldax(info *stepInfo) uint {
 	var address uint16
 	rp := getOpcodeRP(info.opcode)
 	switch rp {
-	case 0x00:
+	case 0b00:
 		address = (uint16(cpu.B) << 8) | uint16(cpu.C)
-	case 0x01:
+	case 0b01:
 		address = (uint16(cpu.D) << 8) | uint16(cpu.E)
 	default:
 		log.Fatalf("Invalid opcode: %v", info)
@@ -135,9 +142,9 @@ func (cpu *CPU) stax(info *stepInfo) uint {
 	var address uint16
 	rp := getOpcodeRP(info.opcode)
 	switch rp {
-	case 0x00:
+	case 0b00:
 		address = (uint16(cpu.B) << 8) | uint16(cpu.C)
-	case 0x01:
+	case 0b01:
 		address = (uint16(cpu.D) << 8) | uint16(cpu.E)
 	default:
 		log.Fatalf("Invalid opcode: %v", info)
@@ -147,7 +154,7 @@ func (cpu *CPU) stax(info *stepInfo) uint {
 }
 
 // XCHG      11101011          -       Exchange DE and HL content
-func (cpu *CPU) xchg(info *stepInfo) uint {
+func (cpu *CPU) xchg(_ *stepInfo) uint {
 	var tempD, tempE uint8
 	tempD = cpu.D
 	tempE = cpu.E
@@ -211,7 +218,7 @@ func (cpu *CPU) adi(info *stepInfo) uint {
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
-	cpu.A += db
+	cpu.A = uint8(result)
 	return 7
 }
 
@@ -230,7 +237,7 @@ func (cpu *CPU) aci(info *stepInfo) uint {
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
-	cpu.A += db
+	cpu.A = uint8(result)
 	return 7
 }
 
@@ -286,7 +293,7 @@ func (cpu *CPU) sui(info *stepInfo) uint {
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
-	cpu.A -= db
+	cpu.A = uint8(result)
 	return 7
 }
 
@@ -305,7 +312,7 @@ func (cpu *CPU) sbi(info *stepInfo) uint {
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
-	cpu.A -= db
+	cpu.A = uint8(result)
 	return 7
 }
 
@@ -356,13 +363,13 @@ func (cpu *CPU) push(info *stepInfo) uint {
 	rp := getOpcodeRP(info.opcode)
 	var hb, lb uint8
 	switch rp {
-	case 0x00:
+	case 0b00:
 		hb, lb = cpu.B, cpu.C
-	case 0x01:
+	case 0b01:
 		hb, lb = cpu.D, cpu.E
-	case 0x10:
+	case 0b10:
 		hb, lb = cpu.H, cpu.L
-	case 0x11:
+	case 0b11:
 		hb, lb = cpu.A, cpu.getProgramStatus()
 	default:
 		panic("PUSH bad register pair. (this shouldn't ever happen)")
@@ -406,60 +413,85 @@ func (cpu *CPU) pop(info *stepInfo) uint {
 func (cpu *CPU) call(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 
-	pclo, pchi := uint8(cpu.PC&0xFF), uint8(cpu.PC>>8&0xFF)
+	nextPC := info.PC + 3
+	pclo, pchi := uint8(nextPC & 0xFF), uint8(nextPC >> 8 & 0xFF)
 	cpu.SP--
-	cpu.Memory[cpu.SP] = pclo // TODO: make sure this byte order is correct....
+	cpu.Memory[cpu.SP] = pchi // TODO: make sure this byte order is correct....
 	cpu.SP--
-	cpu.Memory[cpu.SP] = pchi
+	cpu.Memory[cpu.SP] = pclo
 
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
 	return 17
 }
 func (cpu *CPU) cm(info *stepInfo) uint {
 	if cpu.Zero {
-		return cpu.call(info)
+		cpu.call(info)
+		return 17
+	} else {
+		cpu.PC += 2
 	}
 	return 11
 }
 func (cpu *CPU) cnc(info *stepInfo) uint {
 	if cpu.Carry == false {
-		return cpu.call(info)
+		cpu.call(info)
+		return 17
+	} else {
+		cpu.PC += 3
 	}
 	return 11
 }
 func (cpu *CPU) cpe(info *stepInfo) uint {
 	if cpu.Parity {
-		return cpu.call(info)
+		cpu.call(info)
+		return 17
+	} else {
+		cpu.PC += 3
 	}
 	return 11
 }
 func (cpu *CPU) cpo(info *stepInfo) uint {
 	if cpu.Parity == false {
-		return cpu.call(info)
+		cpu.call(info)
+		return 17
+	} else {
+		cpu.PC += 3
 	}
 	return 11
 }
 func (cpu *CPU) cp(info *stepInfo) uint {
 	if cpu.Sign == false {
-		return cpu.call(info)
+		cpu.call(info)
+		return 17
+	} else {
+		cpu.PC += 3
 	}
 	return 11
 }
 func (cpu *CPU) cc(info *stepInfo) uint {
 	if cpu.Carry {
-		return cpu.call(info)
+		cpu.call(info)
+		return 17
+	} else {
+		cpu.PC += 3
 	}
 	return 11
 }
 func (cpu *CPU) cz(info *stepInfo) uint {
 	if cpu.Zero {
-		return cpu.call(info)
+		cpu.call(info)
+		return 17
+	} else {
+		cpu.PC += 3
 	}
 	return 11
 }
 func (cpu *CPU) cnz(info *stepInfo) uint {
 	if cpu.Zero == false {
-		return cpu.call(info)
+		cpu.call(info)
+		return 17
+	} else {
+		cpu.PC += 3
 	}
 	return 11
 }
@@ -477,6 +509,8 @@ func (cpu *CPU) jz(info *stepInfo) uint {
 	if cpu.Zero {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
 		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	} else {
+		cpu.PC += 3
 	}
 	return 10
 }
@@ -484,6 +518,8 @@ func (cpu *CPU) jnz(info *stepInfo) uint {
 	if cpu.Zero == false {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
 		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	} else {
+		cpu.PC += 3
 	}
 	return 10
 }
@@ -491,6 +527,8 @@ func (cpu *CPU) jc(info *stepInfo) uint {
 	if cpu.Carry {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
 		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	} else {
+		cpu.PC += 3
 	}
 	return 10
 }
@@ -498,6 +536,8 @@ func (cpu *CPU) jnc(info *stepInfo) uint {
 	if cpu.Carry == false {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
 		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	} else {
+		cpu.PC += 3
 	}
 	return 10
 }
@@ -505,6 +545,8 @@ func (cpu *CPU) jm(info *stepInfo) uint {
 	if cpu.Sign {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
 		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	} else {
+		cpu.PC += 3
 	}
 	return 10
 }
@@ -512,6 +554,8 @@ func (cpu *CPU) jp(info *stepInfo) uint {
 	if cpu.Sign == false {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
 		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	} else {
+		cpu.PC += 3
 	}
 	return 10
 }
@@ -519,6 +563,8 @@ func (cpu *CPU) jpe(info *stepInfo) uint {
 	if cpu.Parity {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
 		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	} else {
+		cpu.PC += 3
 	}
 	return 10
 }
@@ -526,24 +572,27 @@ func (cpu *CPU) jpo(info *stepInfo) uint {
 	if cpu.Parity == false {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
 		cpu.PC = (uint16(hb) << 8) | uint16(lb)
+	} else {
+		cpu.PC += 3
 	}
 	return 10
 }
 
 // STC       00110111          C       Set Carry flag
-func (cpu *CPU) stc(info *stepInfo) uint {
+func (cpu *CPU) stc(_ *stepInfo) uint {
 	cpu.Carry = true
 	return 4
 }
 
 // EI        11111011          -       Enable interrupts
-func (cpu *CPU) ei(info *stepInfo) uint {
-	cpu.InterruptsEnabled = true
+func (cpu *CPU) ei(_ *stepInfo) uint {
+	// TODO: this action should be deferred until the next instruction has completed
+	cpu.deferInterruptsEnable = true
 	return 4
 }
 
 // DI        11110011          -       Disable interrupts
-func (cpu *CPU) di(info *stepInfo) uint {
+func (cpu *CPU) di(_ *stepInfo) uint {
 	cpu.InterruptsEnabled = false
 	return 4
 }
@@ -641,7 +690,7 @@ func (cpu *CPU) ori(info *stepInfo) uint {
 ///////////////////
 // RETs
 ///////////////////
-func (cpu *CPU) ret(info *stepInfo) uint {
+func (cpu *CPU) ret(_ *stepInfo) uint {
 	hb, lb := cpu.Memory[cpu.SP+1], cpu.Memory[cpu.SP]
 	cpu.SP += 2
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
@@ -658,6 +707,8 @@ func (cpu *CPU) rm(info *stepInfo) uint {
 	if cpu.Sign {
 		cpu.ret(info)
 		return 11
+	} else {
+		cpu.PC += 1
 	}
 	return 5
 }
@@ -665,6 +716,8 @@ func (cpu *CPU) rnc(info *stepInfo) uint {
 	if cpu.Carry == false {
 		cpu.ret(info)
 		return 11
+	} else {
+		cpu.PC += 1
 	}
 	return 5
 }
@@ -672,6 +725,8 @@ func (cpu *CPU) rnz(info *stepInfo) uint {
 	if cpu.Zero == false {
 		cpu.ret(info)
 		return 11
+	} else {
+		cpu.PC += 1
 	}
 	return 5
 }
@@ -679,6 +734,8 @@ func (cpu *CPU) rz(info *stepInfo) uint {
 	if cpu.Zero {
 		cpu.ret(info)
 		return 11
+	} else {
+		cpu.PC += 1
 	}
 	return 5
 }
@@ -686,6 +743,8 @@ func (cpu *CPU) rp(info *stepInfo) uint {
 	if cpu.Sign == false {
 		cpu.ret(info)
 		return 11
+	} else {
+		cpu.PC += 1
 	}
 	return 5
 }
@@ -693,6 +752,8 @@ func (cpu *CPU) rpe(info *stepInfo) uint {
 	if cpu.Parity == true {
 		cpu.ret(info)
 		return 11
+	} else {
+		cpu.PC += 1
 	}
 	return 50
 }
@@ -700,6 +761,8 @@ func (cpu *CPU) rpo(info *stepInfo) uint {
 	if cpu.Parity == false {
 		cpu.ret(info)
 		return 11
+	} else {
+		cpu.PC += 1
 	}
 	return 5
 }
@@ -708,7 +771,7 @@ func (cpu *CPU) rpo(info *stepInfo) uint {
 // Rotates
 //////////////////
 // RLC       00000111          C       Rotate A left
-func (cpu *CPU) rlc(info *stepInfo) uint {
+func (cpu *CPU) rlc(_ *stepInfo) uint {
 	highBit := cpu.A >> 7
 	cpu.Carry = highBit == 1
 	cpu.A = cpu.A << 1
@@ -717,7 +780,7 @@ func (cpu *CPU) rlc(info *stepInfo) uint {
 }
 
 // RAL       00010111          C       Rotate A left through carry
-func (cpu *CPU) ral(info *stepInfo) uint {
+func (cpu *CPU) ral(_ *stepInfo) uint {
 	var oldCarry uint8
 	if cpu.Carry {
 		oldCarry = 1
@@ -730,7 +793,7 @@ func (cpu *CPU) ral(info *stepInfo) uint {
 }
 
 // RRC       00001111          C       Rotate A right
-func (cpu *CPU) rrc(info *stepInfo) uint {
+func (cpu *CPU) rrc(_ *stepInfo) uint {
 	lowBit := cpu.A & 0b1
 	cpu.Carry = lowBit == 1
 	cpu.A = cpu.A >> 1
@@ -739,7 +802,7 @@ func (cpu *CPU) rrc(info *stepInfo) uint {
 }
 
 // RAR       00011111          C       Rotate A right through carry
-func (cpu *CPU) rar(info *stepInfo) uint {
+func (cpu *CPU) rar(_ *stepInfo) uint {
 	var oldCarry uint8
 	if cpu.Carry {
 		oldCarry = 1
@@ -752,13 +815,13 @@ func (cpu *CPU) rar(info *stepInfo) uint {
 }
 
 // CMA       00101111          -       Complement A
-func (cpu *CPU) cma(info *stepInfo) uint {
+func (cpu *CPU) cma(_ *stepInfo) uint {
 	cpu.A = ^cpu.A
 	return 4
 }
 
 // CMC       00111111          C       Complement Carry flag
-func (cpu *CPU) cmc(info *stepInfo) uint {
+func (cpu *CPU) cmc(_ *stepInfo) uint {
 	if cpu.Carry {
 		cpu.Carry = false
 	} else {
@@ -802,7 +865,7 @@ func (cpu *CPU) xra(info *stepInfo) uint {
 }
 
 // DAA       00100111          ZSPCA   Decimal Adjust accumulator
-func (cpu *CPU) daa(info *stepInfo) uint {
+func (cpu *CPU) daa(_ *stepInfo) uint {
 
 	var addend uint8
 	msb := cpu.A >> 4
@@ -828,7 +891,7 @@ func (cpu *CPU) daa(info *stepInfo) uint {
 }
 
 // XTHL      11100011          -       Swap H:L with top word on stack
-func (cpu *CPU) xthl(info *stepInfo) uint {
+func (cpu *CPU) xthl(_ *stepInfo) uint {
 	stackLo := cpu.Memory[cpu.SP]
 	stackHi := cpu.Memory[cpu.SP+1]
 	cpu.Memory[cpu.SP] = cpu.L
@@ -865,13 +928,28 @@ func (cpu *CPU) xri(info *stepInfo) uint {
 }
 
 // SPHL      11111001          -       Set SP to content of H:L
-func (cpu *CPU) sphl(info *stepInfo) uint {
+func (cpu *CPU) sphl(_ *stepInfo) uint {
 	cpu.SP = (uint16(cpu.H) << 8) | uint16(cpu.L)
 	return 0
 }
 
 // PCHL      11101001          -       Jump to address in H:L
-func (cpu *CPU) pchl(info *stepInfo) uint {
+func (cpu *CPU) pchl(_ *stepInfo) uint {
 	cpu.PC = (uint16(cpu.H) << 8) | uint16(cpu.L)
 	return 0
+}
+
+func (cpu *CPU) Interrupt(interruptType uint) {
+	if cpu.InterruptsEnabled {
+		// Push PC on to the stack
+		pcHi, pcLo := uint8(cpu.PC >> 8), uint8(cpu.PC & 0xFF)
+		cpu.SP--
+		cpu.Memory[cpu.SP] = pcHi
+		cpu.SP--
+		cpu.Memory[cpu.SP] = pcLo
+
+		// Move PC to type * 8
+		cpu.PC = 8 * uint16(interruptType)
+		cpu.InterruptsEnabled = false
+	}
 }

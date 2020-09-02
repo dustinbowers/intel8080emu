@@ -17,11 +17,19 @@ func (cpu *CPU) Step() (uint, error) {
 		log.Println(cpu.GetInstructionInfo())
 	}
 	if opcodeFunc == nil {
-		return 0, fmt.Errorf("Invalid opcode: 0x%x\n", opcode)
+		return 0, fmt.Errorf("Invalid opcode: 0x02%x\n (%s)", opcode, instructionNames[opcode])
+	}
+
+	if cpu.deferInterruptsEnable {
+		cpu.deferInterruptsEnable = false
+		cpu.InterruptsEnabled = true
 	}
 
 	// Execute current opcode
-	cpu.PC += uint16(instructionBytes[opcode])
+	pcAdvanceAmt := uint16(instructionBytes[opcode])
+	if pcAdvanceMask[opcode] == 1 {
+		cpu.PC += pcAdvanceAmt
+	}
 	cycles := opcodeFunc(&stepInfo)
 
 	return cycles, nil
@@ -36,7 +44,14 @@ func (cpu *CPU) GetInstructionInfo() string {
 	bytes := instructionBytes[opcode]
 	name := instructionNames[opcode]
 
-	return fmt.Sprintf("PC: %05d, SP: %05d, Flags: %08b, Opcode: 0x%02x (%d) - %s\t[%d %d %d %d %d %d %d]",
-		cpu.PC, cpu.SP, cpu.getProgramStatus(), opcode, bytes, name,
+	args := "---- ----"
+	if bytes == 2 {
+		args = fmt.Sprintf("0x%02x ----", cpu.Memory[cpu.PC+1])
+	}
+	if bytes == 3 {
+		args = fmt.Sprintf("0x%02x 0x%02x", cpu.Memory[cpu.PC+1], cpu.Memory[cpu.PC+2])
+	}
+	return fmt.Sprintf("PC: %04x, SP: %04x, Flags: %08b, Opcode: 0b%08b / 0x%02x (%d) - %s,\t\tArgs [%s],\tRegs: [%x %x %x %x %x %x %x]",
+		cpu.PC, cpu.SP, cpu.getProgramStatus(), opcode, opcode, bytes, name, args,
 		cpu.A, cpu.B, cpu.C, cpu.D, cpu.E, cpu.H, cpu.L)
 }

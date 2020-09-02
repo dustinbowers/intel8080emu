@@ -5,10 +5,13 @@ import (
 	"io/ioutil"
 )
 
+
 type CPU struct {
 	DEBUG bool
 
 	Memory [65536]byte
+	ioBus *IOBus
+
 	// Registers
 	A uint8
 	B uint8
@@ -22,8 +25,8 @@ type CPU struct {
 	SP uint16
 
 	// Flags
-	Sign, Zero, Parity, Carry, AuxCarry bool
-	InterruptsEnabled                   bool
+	Sign, Zero, Parity, Carry, AuxCarry 		bool
+	deferInterruptsEnable, InterruptsEnabled	bool
 
 	// op table
 	table []func(*stepInfo) uint
@@ -90,6 +93,25 @@ var instructionBytes = []uint8{
 	1, 1, 3, 1, 3, 1, 2, 1, 1, 1, 3, 1, 3, 3, 2, 1,
 }
 
+var pcAdvanceMask = []uint8{ // Used to avoid altering the PC after calls/jumps
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+	0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0,
+	0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0,
+	0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0,
+}
+
 func (cpu *CPU) createInstructionTable() {
 	cpu.table = []func(*stepInfo) uint{
 		cpu.nop, cpu.lxi, cpu.stax, cpu.inx, cpu.inr, cpu.dcr, cpu.mvi, cpu.rlc, nil, cpu.dad, cpu.ldax, cpu.dcx, cpu.inr, cpu.dcr, cpu.mvi, cpu.rrc,
@@ -118,8 +140,9 @@ func (cpu *CPU) Reset() {
 	// TODO
 }
 
-func NewCPU() *CPU {
+func NewCPU(bus *IOBus) *CPU {
 	cpu := CPU{}
+	cpu.ioBus = bus
 	cpu.createInstructionTable()
 	cpu.Reset()
 	return &cpu

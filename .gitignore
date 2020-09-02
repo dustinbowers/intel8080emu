@@ -3,3 +3,4 @@
 roms/
 build/
 docs/
+*.out
