@@ -1,4 +1,4 @@
-# Intel 8080
+# Intel 8080 Emulator
 
 The beginnings of an Intel 8080 emulator, now with early stages of SDL
 
