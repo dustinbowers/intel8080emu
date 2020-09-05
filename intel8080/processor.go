@@ -6,7 +6,7 @@ import (
 )
 
 func (cpu *CPU) Step() (uint, error) {
-	opcode := cpu.memory.Read(cpu.PC) //cpu.Read(cpu.PC)
+	opcode := cpu.memory.Read(cpu.PC)
 	opcodeFunc := cpu.table[opcode]
 	stepInfo := stepInfo{
 		PC:     cpu.PC,
@@ -35,18 +35,13 @@ func (cpu *CPU) Step() (uint, error) {
 	return cycles, nil
 }
 
-//func (cpu *CPU) Read(pc uint16) uint8 {
-//	return cpu.Memory[pc]
-//}
-
 func (cpu *CPU) GetInstructionInfo() string {
-	opcode := cpu.memory.Read(cpu.PC) //cpu.Read(cpu.PC)
+	opcode := cpu.memory.Read(cpu.PC)
 	bytes := instructionBytes[opcode]
 	name := instructionNames[opcode]
 
 	args := "---- ----"
 	if bytes == 2 {
-		args = fmt.Sprintf("0x%02x ----", cpu.memory.Read(cpu.PC+1)) // cpu.Memory[cpu.PC+1])
 	}
 	if bytes == 3 {
 		args = fmt.Sprintf("0x%02x 0x%02x", cpu.memory.Read(cpu.PC+1), cpu.memory.Read(cpu.PC+2)) //cpu.Memory[cpu.PC+1], cpu.Memory[cpu.PC+2])

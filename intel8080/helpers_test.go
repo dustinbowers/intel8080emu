@@ -5,7 +5,9 @@ import (
 )
 
 func TestGetOpcodeRegPtr(t *testing.T) {
-	var tCpu = NewCPU(nil)
+	ioBus := NewIOBus()
+	memory := NewMemory(0xFFFF)
+	var tCpu = NewCPU(ioBus, memory)
 	tCpu.H = 0xAA
 	tCpu.L = 0xBB
 	memOffset := (uint16(tCpu.H) << 8) | uint16(tCpu.L)
@@ -21,7 +23,7 @@ func TestGetOpcodeRegPtr(t *testing.T) {
 		{0b011, &tCpu.E, false},
 		{0b100, &tCpu.H, false},
 		{0b101, &tCpu.L, false},
-		{0b110, &tCpu.Memory[memOffset], true},
+		{0b110, memory.GetOffsetPtr(memOffset), true},
 	}
 	for i, tt := range tests {
 		gotPtr, gotMemoryAccess := tCpu.getOpcodeRegPtr(tt.inRegIndicator)
@@ -33,12 +35,14 @@ func TestGetOpcodeRegPtr(t *testing.T) {
 }
 
 func TestGetOpcodeArgs(t *testing.T) {
-	var tCpu = NewCPU(nil)
+	ioBus := NewIOBus()
+	memory := NewMemory(0xFFFF)
+	var tCpu = NewCPU(ioBus, memory)
 	PC := uint16(100)
 	tCpu.PC = PC
-	tCpu.Memory[PC + 0] = 0xAA
-	tCpu.Memory[PC + 1] = 0xBB
-	tCpu.Memory[PC + 2] = 0xCC
+	memory.Write(PC + 0, 0xAA)
+	memory.Write(PC + 1, 0xBB)
+	memory.Write(PC + 2, 0xCC)
 
 	wantLb := uint8(0xBB)
 	wantHb := uint8(0xCC)
@@ -52,7 +56,9 @@ func TestGetOpcodeArgs(t *testing.T) {
 }
 
 func TestSetProgramStatus(t *testing.T) {
-	var tCpu = NewCPU(nil)
+	ioBus := NewIOBus()
+	memory := NewMemory(0xFFFF)
+	var tCpu = NewCPU(ioBus, memory)
 	tests := []struct {
 		inPsw uint8
 		wantSign, wantZero, wantAuxCarry, wantParity, wantCarry bool
@@ -79,7 +85,9 @@ func TestSetProgramStatus(t *testing.T) {
 }
 
 func TestGetProgramStatus(t *testing.T) {
-	var tCpu = NewCPU(nil)
+	ioBus := NewIOBus()
+	memory := NewMemory(0xFFFF)
+	var tCpu = NewCPU(ioBus, memory)
 	tests := []struct {
 		inSign bool
 		inZero bool
