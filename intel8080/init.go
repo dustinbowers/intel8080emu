@@ -1,15 +1,9 @@
 package intel8080
 
-import (
-	"fmt"
-	"io/ioutil"
-)
-
-
 type CPU struct {
 	DEBUG bool
 
-	Memory [65536]byte
+	memory *Memory
 	ioBus *IOBus
 
 	// Registers
@@ -140,34 +134,15 @@ func (cpu *CPU) Reset() {
 	// TODO
 }
 
-func NewCPU(bus *IOBus) *CPU {
+func NewCPU(bus *IOBus, mem *Memory) *CPU {
 	cpu := CPU{}
 	cpu.ioBus = bus
+	cpu.memory = mem
 	cpu.createInstructionTable()
 	cpu.Reset()
 	return &cpu
 }
 
-func (cpu *CPU) LoadInvaders(filepath string) error {
-	files := []string{
-		"invaders.h",
-		"invaders.g",
-		"invaders.f",
-		"invaders.e",
-	}
-	offset := 0
-	for _, filename := range files {
-		romPath := filepath + filename
-		fmt.Printf("loading %s\n", romPath)
-		data, err := ioutil.ReadFile(romPath)
-		if err != nil {
-			return fmt.Errorf("loadRom: failed reading file: %v", err)
-		}
-
-		for _, b := range data {
-			cpu.Memory[offset] = b
-			offset++
-		}
-	}
-	return nil
+func (cpu *CPU) GetVram() []byte {
+	return cpu.memory.GetMemorySlice(0x2400, 0x4000)
 }

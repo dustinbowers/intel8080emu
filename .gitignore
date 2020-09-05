@@ -4,3 +4,4 @@ roms/
 build/
 docs/
 *.out
+*.dump

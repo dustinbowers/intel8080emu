@@ -6,7 +6,7 @@ import (
 )
 
 func (cpu *CPU) Step() (uint, error) {
-	opcode := cpu.Read(cpu.PC)
+	opcode := cpu.memory.Read(cpu.PC) //cpu.Read(cpu.PC)
 	opcodeFunc := cpu.table[opcode]
 	stepInfo := stepInfo{
 		PC:     cpu.PC,
@@ -35,21 +35,21 @@ func (cpu *CPU) Step() (uint, error) {
 	return cycles, nil
 }
 
-func (cpu *CPU) Read(pc uint16) uint8 {
-	return cpu.Memory[pc]
-}
+//func (cpu *CPU) Read(pc uint16) uint8 {
+//	return cpu.Memory[pc]
+//}
 
 func (cpu *CPU) GetInstructionInfo() string {
-	opcode := cpu.Read(cpu.PC)
+	opcode := cpu.memory.Read(cpu.PC) //cpu.Read(cpu.PC)
 	bytes := instructionBytes[opcode]
 	name := instructionNames[opcode]
 
 	args := "---- ----"
 	if bytes == 2 {
-		args = fmt.Sprintf("0x%02x ----", cpu.Memory[cpu.PC+1])
+		args = fmt.Sprintf("0x%02x ----", cpu.memory.Read(cpu.PC+1)) // cpu.Memory[cpu.PC+1])
 	}
 	if bytes == 3 {
-		args = fmt.Sprintf("0x%02x 0x%02x", cpu.Memory[cpu.PC+1], cpu.Memory[cpu.PC+2])
+		args = fmt.Sprintf("0x%02x 0x%02x", cpu.memory.Read(cpu.PC+1), cpu.memory.Read(cpu.PC+2)) //cpu.Memory[cpu.PC+1], cpu.Memory[cpu.PC+2])
 	}
 	return fmt.Sprintf("PC: %04x, SP: %04x, Flags: %08b, Opcode: 0b%08b / 0x%02x (%d) - %s,\t\tArgs [%s],\tRegs: [%x %x %x %x %x %x %x]",
 		cpu.PC, cpu.SP, cpu.getProgramStatus(), opcode, opcode, bytes, name, args,

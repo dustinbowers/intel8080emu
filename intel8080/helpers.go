@@ -24,13 +24,14 @@ func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) (*uint8, bool) {
 	case 0b110:
 		memoryAccess = true
 		memOffset := (uint16(cpu.H) << 8) | uint16(cpu.L)
-		ptr = &cpu.Memory[memOffset]
+		ptr = cpu.memory.GetOffsetPtr(memOffset)
 	}
 	return ptr, memoryAccess
 }
 
 func (cpu *CPU) getOpcodeArgs(PC uint16) (uint8, uint8) {
-	return cpu.Memory[PC+1], cpu.Memory[PC+2]
+	//return cpu.Memory[PC+1], cpu.Memory[PC+2]
+	return cpu.memory.Read(PC+1), cpu.memory.Read(PC+2)
 }
 
 func (cpu *CPU) setProgramStatus(psw uint8) {

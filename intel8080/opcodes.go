@@ -43,7 +43,7 @@ func (cpu *CPU) inr(info *stepInfo) uint {
 	}
 	*destPtr++
 
-	cpu.Sign = (*destPtr & 0b1000000) != 0
+	cpu.Sign = (*destPtr & 0b10000000) != 0
 	cpu.AuxCarry = (*destPtr & 0b1111) == 0
 	cpu.Zero = *destPtr == 0
 	cpu.Parity = getParity(*destPtr)
@@ -58,10 +58,11 @@ func (cpu *CPU) dcr(info *stepInfo) uint {
 	if memAccess {
 		cycles = 10
 	}
+	original := *destPtr
 	*destPtr--
 
-	cpu.Sign = (*destPtr & 0b1000000) != 0
-	cpu.AuxCarry = (*destPtr & 0b1111) == 0
+	cpu.Sign = (*destPtr & 0b10000000) != 0
+	cpu.AuxCarry = original & 0b00001111 == 0
 	cpu.Zero = *destPtr == 0
 	cpu.Parity = getParity(*destPtr)
 	return cycles
@@ -92,7 +93,7 @@ func (cpu *CPU) lxi(info *stepInfo) uint {
 func (cpu *CPU) lda(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	address := (uint16(hb) << 8) | uint16(lb)
-	cpu.A = cpu.Memory[address]
+	cpu.A = cpu.memory.Read(address)
 	return 13
 }
 
@@ -100,7 +101,7 @@ func (cpu *CPU) lda(info *stepInfo) uint {
 func (cpu *CPU) sta(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	address := (uint16(hb) << 8) | uint16(lb)
-	cpu.Memory[address] = cpu.A
+	cpu.memory.Write(address, cpu.A)
 	return 13
 }
 
@@ -108,8 +109,8 @@ func (cpu *CPU) sta(info *stepInfo) uint {
 func (cpu *CPU) lhld(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	address := (uint16(hb) << 8) | uint16(lb)
-	cpu.L = cpu.Memory[address]
-	cpu.H = cpu.Memory[address+1]
+	cpu.L = cpu.memory.Read(address)
+	cpu.H = cpu.memory.Read(address+1)
 	return 16
 }
 
@@ -117,11 +118,12 @@ func (cpu *CPU) lhld(info *stepInfo) uint {
 func (cpu *CPU) shld(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	address := (uint16(hb) << 8) | uint16(lb)
-	cpu.Memory[address] = cpu.L
-	cpu.Memory[address+1] = cpu.H
+	cpu.memory.Write(address, cpu.L)
+	cpu.memory.Write(address+1, cpu.H)
 	return 16
 }
 
+// LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
 func (cpu *CPU) ldax(info *stepInfo) uint {
 	var address uint16
 	rp := getOpcodeRP(info.opcode)
@@ -133,7 +135,7 @@ func (cpu *CPU) ldax(info *stepInfo) uint {
 	default:
 		log.Fatalf("Invalid opcode: %v", info)
 	}
-	cpu.A = cpu.Memory[address]
+	cpu.A = cpu.memory.Read(address)
 	return 7
 }
 
@@ -149,7 +151,7 @@ func (cpu *CPU) stax(info *stepInfo) uint {
 	default:
 		log.Fatalf("Invalid opcode: %v", info)
 	}
-	cpu.Memory[address] = cpu.A
+	cpu.memory.Write(address, cpu.A)
 	return 7
 }
 
@@ -257,7 +259,7 @@ func (cpu *CPU) dad(info *stepInfo) uint {
 		addend = uint32(cpu.SP)
 	}
 	resultHL = currentHL + addend
-	cpu.Carry = resultHL&0x10000 > 0
+	cpu.Carry = resultHL & 0x10000 > 0
 	cpu.H = uint8(currentHL >> 8)
 	cpu.L = uint8(currentHL & 0xFF)
 	return 10
@@ -271,7 +273,7 @@ func (cpu *CPU) sub(info *stepInfo) uint {
 	result := uint16(cpu.A) - uint16(*regPtr)
 	cpu.Zero = (result & 0xFF) == 0
 	cpu.Sign = result&0b10000000 != 0
-	cpu.Carry = result&0b100000000 != 0
+	cpu.Carry = result >> 8 > 0 // todo: this should be fixed now
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
 	cpu.A = uint8(result & 0xFF)
@@ -289,7 +291,7 @@ func (cpu *CPU) sui(info *stepInfo) uint {
 	result := uint16(cpu.A) - uint16(db)
 	cpu.Zero = (result & 0xFF) == 0
 	cpu.Sign = result&0b10000000 != 0
-	cpu.Carry = result&0b100000000 != 0
+	cpu.Carry = result >> 8 > 0 // todo: this should be fixed now
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
@@ -308,7 +310,7 @@ func (cpu *CPU) sbi(info *stepInfo) uint {
 	result := uint16(cpu.A) - uint16(db) - carryVal
 	cpu.Zero = (result & 0xFF) == 0
 	cpu.Sign = result&0b10000000 != 0
-	cpu.Carry = result&0b100000000 != 0
+	cpu.Carry = result >> 8 > 0 // todo: this should be fixed now
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
@@ -328,7 +330,7 @@ func (cpu *CPU) sbb(info *stepInfo) uint {
 	result := uint16(cpu.A) - uint16(*regPtr) - carryVal
 	cpu.Zero = (result & 0xFF) == 0
 	cpu.Sign = result&0b10000000 != 0
-	cpu.Carry = result&0b100000000 != 0
+	cpu.Carry = (result >> 8) > 0 // todo: this should be fixed now
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
 	cpu.A = uint8(result & 0xFF)
@@ -347,7 +349,7 @@ func (cpu *CPU) cmp(info *stepInfo) uint {
 	result := uint16(cpu.A) - uint16(*ptr)
 	cpu.Zero = (result & 0xFF) == 0
 	cpu.Sign = result&0b10000000 != 0
-	cpu.Carry = result&0b100000000 != 0
+	cpu.Carry = result >> 8 > 0 // todo: this should be fixed now
 	cpu.Parity = getParity(uint8(result & 0b11111111))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *ptr) & 0b00010000) > 0 // ?? TODO: verify
 
@@ -375,9 +377,9 @@ func (cpu *CPU) push(info *stepInfo) uint {
 		panic("PUSH bad register pair. (this shouldn't ever happen)")
 	}
 	cpu.SP--
-	cpu.Memory[cpu.SP] = hb
+	cpu.memory.Write(cpu.SP, hb)
 	cpu.SP--
-	cpu.Memory[cpu.SP] = lb
+	cpu.memory.Write(cpu.SP, lb)
 
 	return 11
 }
@@ -386,9 +388,9 @@ func (cpu *CPU) push(info *stepInfo) uint {
 func (cpu *CPU) pop(info *stepInfo) uint {
 	rp := getOpcodeRP(info.opcode)
 
-	lb := cpu.Memory[cpu.SP]
+	lb := cpu.memory.Read(cpu.SP)
 	cpu.SP++
-	hb := cpu.Memory[cpu.SP]
+	hb := cpu.memory.Read(cpu.SP)
 	cpu.SP++
 
 	switch rp {
@@ -414,17 +416,17 @@ func (cpu *CPU) call(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 
 	nextPC := info.PC + 3
-	pclo, pchi := uint8(nextPC & 0xFF), uint8(nextPC >> 8 & 0xFF)
+	nextPClo, nextPChi := uint8(nextPC & 0xFF), uint8((nextPC >> 8) & 0xFF)
 	cpu.SP--
-	cpu.Memory[cpu.SP] = pchi // TODO: make sure this byte order is correct....
+	cpu.memory.Write(cpu.SP, nextPChi)
 	cpu.SP--
-	cpu.Memory[cpu.SP] = pclo
+	cpu.memory.Write(cpu.SP, nextPClo)
 
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
 	return 17
 }
 func (cpu *CPU) cm(info *stepInfo) uint {
-	if cpu.Zero {
+	if cpu.Sign {
 		cpu.call(info)
 		return 17
 	} else {
@@ -586,7 +588,7 @@ func (cpu *CPU) stc(_ *stepInfo) uint {
 
 // EI        11111011          -       Enable interrupts
 func (cpu *CPU) ei(_ *stepInfo) uint {
-	// TODO: this action should be deferred until the next instruction has completed
+	// Note interrupt enable is deferred until the next instruction has completed
 	cpu.deferInterruptsEnable = true
 	return 4
 }
@@ -615,7 +617,7 @@ func (cpu *CPU) cpi(info *stepInfo) uint {
 	// TODO: test this...
 	db, _ := cpu.getOpcodeArgs(info.PC)
 	result := int16(cpu.A) - int16(db)
-	cpu.Carry = (result & 0b100000000) != 0
+	cpu.Carry = result >> 8 > 0 // todo: this should be fixed now
 	cpu.AuxCarry = ^(int16(cpu.A)^result^int16(db))&0x10 > 0
 	cpu.Zero = (result & 0xFF) == 0
 	cpu.Sign = (result & 0x80) != 0
@@ -661,7 +663,7 @@ func (cpu *CPU) ora(info *stepInfo) uint {
 	ptr, memoryAccess := cpu.getOpcodeRegPtr(sss)
 	cpu.A |= *ptr
 
-	cpu.Zero = false
+	cpu.Zero = cpu.A == 0
 	cpu.Sign = cpu.A&0b10000000 > 0
 	cpu.Carry = false
 	cpu.AuxCarry = false
@@ -679,7 +681,7 @@ func (cpu *CPU) ori(info *stepInfo) uint {
 	db, _ := cpu.getOpcodeArgs(info.PC)
 	cpu.A |= db
 
-	cpu.Zero = false
+	cpu.Zero = cpu.A == 0
 	cpu.Sign = cpu.A&0b10000000 > 0
 	cpu.Carry = false
 	cpu.AuxCarry = false
@@ -691,7 +693,7 @@ func (cpu *CPU) ori(info *stepInfo) uint {
 // RETs
 ///////////////////
 func (cpu *CPU) ret(_ *stepInfo) uint {
-	hb, lb := cpu.Memory[cpu.SP+1], cpu.Memory[cpu.SP]
+	hb, lb := cpu.memory.Read(cpu.SP + 1), cpu.memory.Read(cpu.SP)
 	cpu.SP += 2
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
 	return 10
@@ -881,8 +883,8 @@ func (cpu *CPU) daa(_ *stepInfo) uint {
 	result := uint16(cpu.A) + uint16(addend)
 	cpu.Zero = (result & 0xFF) == 0
 	cpu.Sign = result&0b10000000 != 0
-	cpu.Carry = result&0b100000000 != 0
-	cpu.Parity = getParity(uint8(result & 0b11111111))
+	cpu.Carry = result >> 8 > 0
+	cpu.Parity = getParity(uint8(result & 0xFF))
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ addend) & 0b00010000) > 0 // ?? TODO: verify
 
 	// TODO: above could definitely be wrong for BCD formatting
@@ -892,10 +894,10 @@ func (cpu *CPU) daa(_ *stepInfo) uint {
 
 // XTHL      11100011          -       Swap H:L with top word on stack
 func (cpu *CPU) xthl(_ *stepInfo) uint {
-	stackLo := cpu.Memory[cpu.SP]
-	stackHi := cpu.Memory[cpu.SP+1]
-	cpu.Memory[cpu.SP] = cpu.L
-	cpu.Memory[cpu.SP+1] = cpu.H
+	stackLo := cpu.memory.Read(cpu.SP)
+	stackHi := cpu.memory.Read(cpu.SP+1)
+	cpu.memory.Write(cpu.SP, cpu.L)
+	cpu.memory.Write(cpu.SP + 1, cpu.H)
 	cpu.L = stackLo
 	cpu.H = stackHi
 	return 18
@@ -910,6 +912,7 @@ func (cpu *CPU) ani(info *stepInfo) uint {
 	cpu.Sign = cpu.A&0b10000000 > 0
 	cpu.Carry = false
 	cpu.AuxCarry = false
+	cpu.AuxCarry = ((cpu.A | db) & 0x08) != 0 // special case on 8080
 	cpu.Parity = getParity(cpu.A)
 	return 7
 }
@@ -944,12 +947,30 @@ func (cpu *CPU) Interrupt(interruptType uint) {
 		// Push PC on to the stack
 		pcHi, pcLo := uint8(cpu.PC >> 8), uint8(cpu.PC & 0xFF)
 		cpu.SP--
-		cpu.Memory[cpu.SP] = pcHi
+		cpu.memory.Write(cpu.SP, pcHi)
 		cpu.SP--
-		cpu.Memory[cpu.SP] = pcLo
+		cpu.memory.Write(cpu.SP, pcLo)
 
 		// Move PC to type * 8
 		cpu.PC = 8 * uint16(interruptType)
 		cpu.InterruptsEnabled = false
 	}
+}
+
+func (cpu *CPU) rst(info *stepInfo) uint {
+	panic("RST not implemented")
+	return 0
+}
+
+func (cpu *CPU) in(info *stepInfo) uint {
+	db, _ := cpu.getOpcodeArgs(info.PC)
+	b := cpu.ioBus.Read(db)
+	cpu.A = b
+	return 10
+}
+
+func (cpu *CPU) out(info *stepInfo) uint {
+	db, _ := cpu.getOpcodeArgs(info.PC)
+	cpu.ioBus.Write(db, cpu.A)
+	return 10
 }
