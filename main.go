@@ -17,7 +17,6 @@ func main() {
 	fmt.Println("Launching...")
 
 	ioBus := intel8080.NewIOBus()
-	ioBus.DEBUG = true
 
 	memory := intel8080.NewMemory(0xFFFF)
 	romDir := "roms/"
@@ -34,6 +33,8 @@ func main() {
 	}
 
 	cpu = intel8080.NewCPU(ioBus, memory)
+	ioBus.DEBUG = true
+	memory.DEBUG = true
 	cpu.DEBUG = true
 
 	if err != nil {
@@ -65,6 +66,7 @@ func main() {
 	defer display.Cleanup()
 
 	vram := cpu.GetVram()
+	_ = display.Draw(vram)
 	fmt.Println("Starting tick loop")
 	var holdCycles uint
 	var currCycles uint
@@ -77,7 +79,11 @@ func main() {
 			continue
 		}
 
-		holdCycles, _ = cpu.Step()
+		holdCycles, err = cpu.Step()
+		if err != nil {
+			fmt.Printf("CPU Execution error: %v\n", err)
+			running = false
+		}
 		currCycles += holdCycles
 
 		if currCycles > 16666 {
@@ -92,13 +98,14 @@ func main() {
 			// trigger interrupt (this happens in hardware at VBlank and ~1/2 VBlank)
 			cpu.Interrupt(interruptType)
 
-			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-				switch event.(type) {
-				case *sdl.QuitEvent:
-					println("Quit")
-					running = false
-					break
-				}
+
+		}
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			switch event.(type) {
+			case *sdl.QuitEvent:
+				println("Quit")
+				running = false
+				break
 			}
 		}
 		time.Sleep(sleepTime)

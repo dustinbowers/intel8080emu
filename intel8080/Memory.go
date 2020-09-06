@@ -6,6 +6,7 @@ import (
 )
 
 type Memory struct {
+	DEBUG bool
 	bytes []byte
 	readOnlyBlocks []protectedBlocks
 }
@@ -41,7 +42,11 @@ func (m* Memory) GetMemoryCopy() []byte {
 }
 
 func (m *Memory) Read(address uint16) byte {
-	return m.bytes[address]
+	byte := m.bytes[address]
+	if m.DEBUG {
+		//fmt.Printf("READ 0b%08b / 0x%02x <- (0x%04x)\n", byte, byte, address)
+	}
+	return byte
 }
 
 func (m *Memory) Write(address uint16, b byte) {
@@ -50,8 +55,11 @@ func (m *Memory) Write(address uint16, b byte) {
 		start := protectedBlock.start
 		end := protectedBlock.end
 		if address >= start && address <= end {
-			panic(fmt.Sprintf("write to read-only memory location %d in protected block [%d:%d]\n", address, start, end))
+			panic(fmt.Sprintf("Write to read-only memory location %d in protected block [%d:%d]\n", address, start, end))
 		}
+	}
+	if m.DEBUG {
+		fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
 	}
 
 	m.bytes[address] = b

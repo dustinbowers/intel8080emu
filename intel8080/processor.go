@@ -17,7 +17,7 @@ func (cpu *CPU) Step() (uint, error) {
 		log.Println(cpu.GetInstructionInfo())
 	}
 	if opcodeFunc == nil {
-		return 0, fmt.Errorf("Invalid opcode: 0x02%x\n (%s)", opcode, instructionNames[opcode])
+		return 0, fmt.Errorf("Invalid opcode: 0x%02x\n (%s)", opcode, instructionNames[opcode])
 	}
 
 	if cpu.deferInterruptsEnable {
@@ -42,11 +42,13 @@ func (cpu *CPU) GetInstructionInfo() string {
 
 	args := "---- ----"
 	if bytes == 2 {
+		args = fmt.Sprintf("0x%02x ----", cpu.memory.Read(cpu.PC+1))
 	}
 	if bytes == 3 {
-		args = fmt.Sprintf("0x%02x 0x%02x", cpu.memory.Read(cpu.PC+1), cpu.memory.Read(cpu.PC+2)) //cpu.Memory[cpu.PC+1], cpu.Memory[cpu.PC+2])
+		args = fmt.Sprintf("0x%02x 0x%02x", cpu.memory.Read(cpu.PC+1), cpu.memory.Read(cpu.PC+2))
 	}
-	return fmt.Sprintf("PC: %04x, SP: %04x, Flags: %08b, Opcode: 0b%08b / 0x%02x (%d) - %s,\t\tArgs [%s],\tRegs: [%x %x %x %x %x %x %x]",
-		cpu.PC, cpu.SP, cpu.getProgramStatus(), opcode, opcode, bytes, name, args,
-		cpu.A, cpu.B, cpu.C, cpu.D, cpu.E, cpu.H, cpu.L)
+	return fmt.Sprintf("PC: %04x, SP: %04x, Flags: %08b, Regs: [%02x %02x %02x %02x %02x %02x %02x], Opcode: 0b%08b / 0x%02x (%d) - %s,\tArgs [%s]",
+		cpu.PC, cpu.SP, cpu.getProgramStatus(),
+		cpu.A, cpu.B, cpu.C, cpu.D, cpu.E, cpu.H, cpu.L,
+		opcode, opcode, bytes, name, args)
 }
