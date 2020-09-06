@@ -3,6 +3,12 @@ package intel8080
 // ----------------------------
 // -------- Helpers -----------
 
+func (cpu *CPU) setFlagSZP(result uint8) {
+	cpu.Zero = result == 0
+	cpu.Sign = result>>7 > 0
+	cpu.Parity = getParity(result)
+}
+
 func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) (*uint8, bool) {
 	var ptr *uint8
 	memoryAccess := false
@@ -31,7 +37,7 @@ func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) (*uint8, bool) {
 
 func (cpu *CPU) getOpcodeArgs(PC uint16) (uint8, uint8) {
 	//return cpu.Memory[PC+1], cpu.Memory[PC+2]
-	return cpu.memory.Read(PC+1), cpu.memory.Read(PC+2)
+	return cpu.memory.Read(PC + 1), cpu.memory.Read(PC + 2)
 }
 
 func (cpu *CPU) setProgramStatus(psw uint8) {

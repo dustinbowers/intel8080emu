@@ -46,10 +46,8 @@ func Draw(cells []byte) error {
 		return fmt.Errorf("draw: FillRect failed: %v", err)
 	}
 
-
 	for i, byte := range cells {
 		y := i / 32
-		//fmt.Printf("%v", byte)
 		for bit := 0; bit < 8; bit++ {
 			x := (i %32) * 8 + bit
 
@@ -59,8 +57,7 @@ func Draw(cells []byte) error {
 			// Yes, it is inefficient to re-draw the entire screen when not needed.
 			// It's done to ensure that each frame's blitting ops take approximately
 			// the same amount of time to complete regardless of 'on' pixels
-			var color uint32 = uint32(byte) & 0x1 << bit //0x00000000
-			//if rand.Intn(100) > 10 {
+			var color uint = uint(byte) & (0x1 << (8-bit)) //0x00000000
 			if color > 0 {
 				color = 0xffffffff
 			}
@@ -71,7 +68,7 @@ func Draw(cells []byte) error {
 				W: blockWidth,
 				H: blockHeight,
 			}
-			_ = surface.FillRect(&rect, color)
+			_ = surface.FillRect(&rect, uint32(color))
 		}
 	}
 	err = window.UpdateSurface()
@@ -80,7 +77,6 @@ func Draw(cells []byte) error {
 	}
 	return nil
 }
-
 
 func Cleanup() {
 	sdl.Quit()

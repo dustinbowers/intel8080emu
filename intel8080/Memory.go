@@ -6,14 +6,14 @@ import (
 )
 
 type Memory struct {
-	DEBUG bool
-	bytes []byte
+	DEBUG          bool
+	bytes          []byte
 	readOnlyBlocks []protectedBlocks
 }
 
 type protectedBlocks struct {
 	start uint16
-	end uint16
+	end   uint16
 }
 
 func NewMemory(size uint16) *Memory {
@@ -23,7 +23,7 @@ func NewMemory(size uint16) *Memory {
 }
 
 func (m *Memory) Protect(startAddress, endAddress uint16) {
-	block := protectedBlocks { startAddress, endAddress }
+	block := protectedBlocks{startAddress, endAddress}
 	m.readOnlyBlocks = append(m.readOnlyBlocks, block)
 }
 
@@ -35,7 +35,7 @@ func (m *Memory) GetMemorySlice(start uint16, end uint16) []byte {
 	return m.bytes[start:end]
 }
 
-func (m* Memory) GetMemoryCopy() []byte {
+func (m *Memory) GetMemoryCopy() []byte {
 	bytesCopy := make([]byte, len(m.bytes))
 	copy(m.bytes, bytesCopy)
 	return bytesCopy
@@ -50,6 +50,7 @@ func (m *Memory) Read(address uint16) byte {
 }
 
 func (m *Memory) Write(address uint16, b byte) {
+	address = address & 0x3FFF
 	// Protect read only boundaries
 	for _, protectedBlock := range m.readOnlyBlocks {
 		start := protectedBlock.start
@@ -59,7 +60,11 @@ func (m *Memory) Write(address uint16, b byte) {
 		}
 	}
 	if m.DEBUG {
-		fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
+		if address >= 0x2400 && address <= 0x3fff {
+			fmt.Printf("VRAM WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
+		} else {
+			fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
+		}
 	}
 
 	m.bytes[address] = b

@@ -5,12 +5,12 @@ import (
 )
 
 type IOBus struct {
-	DEBUG bool
+	DEBUG   bool
 	bitMask byte
-	shiftH byte
-	shiftL byte
-	offset byte
-	input byte
+	shiftH  byte
+	shiftL  byte
+	offset  byte
+	input   byte
 }
 
 func NewIOBus() *IOBus {
@@ -36,9 +36,9 @@ func (bus *IOBus) Read(b byte) byte {
 		//5	P2 joystick left
 		//6	P2 joystick right
 		//7	dipswitch coin info 1:off,0:on
-		return 0b00010000
+		return 0b00000000
 	case 0x03:
-		shift := uint16(bus.shiftH) << 8 | uint16(bus.shiftL)
+		shift := uint16(bus.shiftH)<<8 | uint16(bus.shiftL)
 		result := byte(shift >> (8 - bus.offset))
 		if bus.DEBUG {
 			log.Printf("IOBus.Read(0x%02x) = 0b%08b - read shift register\n", b, result)
@@ -55,7 +55,7 @@ func (bus *IOBus) Read(b byte) byte {
 func (bus *IOBus) Write(b byte, A byte) {
 	switch b {
 	case 0x02:
-		bus.offset = byte(A & bus.bitMask)
+		bus.offset = A & bus.bitMask
 		if bus.DEBUG {
 			log.Printf("IOBus.Write(0x%02x, 0b%08b) - offset = 0b%08b\n", b, A, bus.offset)
 		}

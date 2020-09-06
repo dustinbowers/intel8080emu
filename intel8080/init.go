@@ -4,7 +4,7 @@ type CPU struct {
 	DEBUG bool
 
 	memory *Memory
-	ioBus *IOBus
+	ioBus  *IOBus
 
 	// Registers
 	A uint8
@@ -19,8 +19,8 @@ type CPU struct {
 	SP uint16
 
 	// Flags
-	Sign, Zero, Parity, Carry, AuxCarry 		bool
-	deferInterruptsEnable, InterruptsEnabled	bool
+	Sign, Zero, Parity, Carry, AuxCarry      bool
+	deferInterruptsEnable, InterruptsEnabled bool
 
 	// op table
 	table []func(*stepInfo) uint
@@ -144,5 +144,7 @@ func NewCPU(bus *IOBus, mem *Memory) *CPU {
 }
 
 func (cpu *CPU) GetVram() []byte {
-	return cpu.memory.GetMemorySlice(0x2400, 0x4000)
+	start := uint16(0x2400)
+	size := uint16(0x1C00)
+	return cpu.memory.GetMemorySlice(start, start+size)
 }

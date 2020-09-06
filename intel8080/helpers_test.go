@@ -12,8 +12,8 @@ func TestGetOpcodeRegPtr(t *testing.T) {
 	tCpu.L = 0xBB
 	memOffset := (uint16(tCpu.H) << 8) | uint16(tCpu.L)
 	tests := []struct {
-		inRegIndicator uint8
-		wantPtr *uint8
+		inRegIndicator   uint8
+		wantPtr          *uint8
 		wantMemoryAccess bool
 	}{
 		{0b111, &tCpu.A, false},
@@ -40,9 +40,9 @@ func TestGetOpcodeArgs(t *testing.T) {
 	var tCpu = NewCPU(ioBus, memory)
 	PC := uint16(100)
 	tCpu.PC = PC
-	memory.Write(PC + 0, 0xAA)
-	memory.Write(PC + 1, 0xBB)
-	memory.Write(PC + 2, 0xCC)
+	memory.Write(PC+0, 0xAA)
+	memory.Write(PC+1, 0xBB)
+	memory.Write(PC+2, 0xCC)
 
 	wantLb := uint8(0xBB)
 	wantHb := uint8(0xCC)
@@ -60,7 +60,7 @@ func TestSetProgramStatus(t *testing.T) {
 	memory := NewMemory(0xFFFF)
 	var tCpu = NewCPU(ioBus, memory)
 	tests := []struct {
-		inPsw uint8
+		inPsw                                                   uint8
 		wantSign, wantZero, wantAuxCarry, wantParity, wantCarry bool
 	}{
 		{0b00000010, false, false, false, false, false},
@@ -89,12 +89,12 @@ func TestGetProgramStatus(t *testing.T) {
 	memory := NewMemory(0xFFFF)
 	var tCpu = NewCPU(ioBus, memory)
 	tests := []struct {
-		inSign bool
-		inZero bool
+		inSign     bool
+		inZero     bool
 		inAuxCarry bool
-		inParity bool
-		inCarry bool
-		want uint8
+		inParity   bool
+		inCarry    bool
+		want       uint8
 	}{
 		// PSW format: S, Z, 0, AC, 0, P, 1, CY
 		{false, false, false, false, false, 0b00000010},
@@ -120,8 +120,8 @@ func TestGetProgramStatus(t *testing.T) {
 
 func TestGetParity(t *testing.T) {
 	tests := []struct {
-		input  byte
-		want bool
+		input byte
+		want  bool
 	}{
 		{0b00000000, true},
 		{0b00000001, false},
@@ -151,7 +151,7 @@ func TestGetParity(t *testing.T) {
 func TestGetOpcodeRP(t *testing.T) {
 	tests := []struct {
 		input uint8
-		want uint8
+		want  uint8
 	}{
 		//     0b--RP----
 		{0b00000000, 0b00},
