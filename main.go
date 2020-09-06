@@ -18,9 +18,8 @@ func main() {
 
 	ioBus := intel8080.NewIOBus()
 
-	memory := intel8080.NewMemory(0x2400)
+	memory := intel8080.NewMemory(0x4000)
 	romDir := "roms/"
-	//fmt.Printf("Loading rom files... ")
 	count, err := memory.LoadRomFiles([]string{
 		romDir + "invaders.h",
 		romDir + "invaders.g",
@@ -35,7 +34,7 @@ func main() {
 	cpu = intel8080.NewCPU(ioBus, memory)
 	//ioBus.DEBUG = true
 	memory.DEBUG = true
-	//cpu.DEBUG = true
+	cpu.DEBUG = true
 
 	if err != nil {
 		log.Fatalf("load invaders failed: %v", err)

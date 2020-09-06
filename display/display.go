@@ -46,7 +46,7 @@ func Draw(cells []byte) error {
 		return fmt.Errorf("draw: FillRect failed: %v", err)
 	}
 
-	for i, byte := range cells {
+	for i, b := range cells {
 		y := i / 32
 		for bit := 0; bit < 8; bit++ {
 			x := (i %32) * 8 + bit
@@ -56,8 +56,8 @@ func Draw(cells []byte) error {
 
 			// Yes, it is inefficient to re-draw the entire screen when not needed.
 			// It's done to ensure that each frame's blitting ops take approximately
-			// the same amount of time to complete regardless of 'on' pixels
-			var color uint = uint(byte) & (0x1 << (8-bit)) //0x00000000
+			// the same amount of time to complete per frame
+			var color uint = uint(b) & (0x1 << (8-bit))
 			if color > 0 {
 				color = 0xffffffff
 			}

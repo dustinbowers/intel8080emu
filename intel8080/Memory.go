@@ -50,7 +50,8 @@ func (m *Memory) Read(address uint16) byte {
 }
 
 func (m *Memory) Write(address uint16, b byte) {
-	address = address & 0x3FFF
+	address = address & 0x3FFF // mirror from 0x4000 - 0xFFFF (technically not needed)
+
 	// Protect read only boundaries
 	for _, protectedBlock := range m.readOnlyBlocks {
 		start := protectedBlock.start
@@ -63,7 +64,7 @@ func (m *Memory) Write(address uint16, b byte) {
 		if address >= 0x2400 && address <= 0x3fff {
 			fmt.Printf("VRAM WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
 		} else {
-			fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
+			//fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
 		}
 	}
 

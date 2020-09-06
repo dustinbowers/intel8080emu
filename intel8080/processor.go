@@ -3,6 +3,7 @@ package intel8080
 import (
 	"fmt"
 	"log"
+	"strings"
 )
 
 func (cpu *CPU) Step() (uint, error) {
@@ -14,7 +15,10 @@ func (cpu *CPU) Step() (uint, error) {
 	}
 
 	if cpu.DEBUG {
-		log.Println(cpu.GetInstructionInfo())
+		dbgStr := cpu.GetInstructionInfo()
+		if strings.Contains(dbgStr, " M,") {
+			log.Println(dbgStr)
+		}
 	}
 	if opcodeFunc == nil {
 		return 0, fmt.Errorf("Invalid opcode: 0x%02x\n (%s)", opcode, instructionNames[opcode])
