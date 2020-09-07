@@ -2,8 +2,6 @@ package intel8080
 
 import (
 	"fmt"
-	"log"
-	"strings"
 )
 
 func (cpu *CPU) Step() (uint, error) {
@@ -16,9 +14,7 @@ func (cpu *CPU) Step() (uint, error) {
 
 	if cpu.DEBUG {
 		dbgStr := cpu.GetInstructionInfo()
-		if strings.Contains(dbgStr, " M,") {
-			log.Println(dbgStr)
-		}
+		fmt.Println(dbgStr)
 	}
 	if opcodeFunc == nil {
 		return 0, fmt.Errorf("Invalid opcode: 0x%02x\n (%s)", opcode, instructionNames[opcode])
@@ -51,7 +47,7 @@ func (cpu *CPU) GetInstructionInfo() string {
 	if bytes == 3 {
 		args = fmt.Sprintf("0x%02x 0x%02x", cpu.memory.Read(cpu.PC+1), cpu.memory.Read(cpu.PC+2))
 	}
-	return fmt.Sprintf("PC: %04x, SP: %04x, Flags: %08b, Regs: [%02x %02x %02x %02x %02x %02x %02x], Opcode: 0b%08b / 0x%02x (%d) - %s,\tArgs [%s]",
+	return fmt.Sprintf("PC: %04x, SP: %04x, Flags: 0x%08b, Regs: [%02x %02x %02x %02x %02x %02x %02x], Opcode: 0b%08b / 0x%02x (%d) - %s,\tArgs [%s]",
 		cpu.PC, cpu.SP, cpu.getProgramStatus(),
 		cpu.A, cpu.B, cpu.C, cpu.D, cpu.E, cpu.H, cpu.L,
 		opcode, opcode, bytes, name, args)

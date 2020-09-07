@@ -17,52 +17,74 @@ func (cpu *CPU) hlt(_ *stepInfo) uint {
 
 // MOV D,S   01DDDSSS          -       Move register to register
 func (cpu *CPU) mov(info *stepInfo) uint {
-	var cycles uint = 5
 	ddd, sss := getOpcodeDDDSSS(info.opcode)
-
-	var destPtr, srcPtr *uint8
-	destPtr, memAccess := cpu.getOpcodeRegPtr(ddd)
-	if memAccess {
-		cycles = 7
+	if ddd == 0b110 {
+		// move register into memory
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		cpu.memory.Write(address, *regPtr)
+		return 7
+	} else if sss == 0b110 {
+		// move memory into register
+		regPtr := cpu.getOpcodeRegPtr(ddd)
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		*regPtr = cpu.memory.Read(address)
+		return 7
+	} else {
+		// move register to register
+		destPtr := cpu.getOpcodeRegPtr(ddd)
+		srcPtr := cpu.getOpcodeRegPtr(sss)
+		*destPtr = *srcPtr
+		return 5
 	}
-	srcPtr, memAccess = cpu.getOpcodeRegPtr(sss)
-	if memAccess {
-		cycles = 7
-	}
-
-	*destPtr = *srcPtr // Maybe check this for nil-dereference? (it should be impossible, though)
-	return cycles
 }
 
 // INR D     00DDD100          ZSPA    Increment register
 func (cpu *CPU) inr(info *stepInfo) uint {
-	var cycles uint = 5
 	ddd, _ := getOpcodeDDDSSS(info.opcode)
-	destPtr, memAccess := cpu.getOpcodeRegPtr(ddd)
-	if memAccess {
-		cycles = 10
-	}
-	*destPtr++
+	if ddd == 0b110 {
+		// increment memory
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value := cpu.memory.Read(address)
+		value += 1
+		cpu.memory.Write(address, value)
 
-	cpu.AuxCarry = (*destPtr & 0b1111) == 0
-	cpu.setFlagSZP(*destPtr)
-	return cycles
+		cpu.AuxCarry = (value & 0b1111) == 0
+		cpu.setFlagSZP(value)
+		return 10
+	} else {
+		// increment register
+		regPtr := cpu.getOpcodeRegPtr(ddd)
+		*regPtr += 1
+
+		cpu.AuxCarry = (*regPtr & 0b1111) == 0
+		cpu.setFlagSZP(*regPtr)
+		return 5
+	}
 }
 
 // DCR D     00DDD101          ZSPA    Decrement register
 func (cpu *CPU) dcr(info *stepInfo) uint {
-	var cycles uint = 5
 	ddd, _ := getOpcodeDDDSSS(info.opcode)
-	destPtr, memAccess := cpu.getOpcodeRegPtr(ddd)
-	if memAccess {
-		cycles = 10
-	}
-	original := *destPtr
-	*destPtr--
+	if ddd == 0b110 {
+		// increment memory
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value := cpu.memory.Read(address)
+		value -= 1
+		cpu.memory.Write(address, value)
 
-	cpu.AuxCarry = original&0b00001111 == 0
-	cpu.setFlagSZP(*destPtr)
-	return cycles
+		cpu.AuxCarry = value&0b00001111 == 0
+		cpu.setFlagSZP(value)
+		return 10
+	} else {
+		// increment register
+		regPtr := cpu.getOpcodeRegPtr(ddd)
+		*regPtr -= 1
+
+		cpu.AuxCarry = *regPtr&0b00001111 == 0
+		cpu.setFlagSZP(*regPtr)
+		return 5
+	}
 }
 
 // LXI RP,#  00RP0001 lb hb    -       Load register pair immediate
@@ -166,17 +188,24 @@ func (cpu *CPU) xchg(_ *stepInfo) uint {
 
 // ADD S     10000SSS          ZSPCA   Add register to A
 func (cpu *CPU) add(info *stepInfo) uint {
-	var cycles uint = 4
 	_, sss := getOpcodeDDDSSS(info.opcode)
-	regPtr, memAccess := cpu.getOpcodeRegPtr(sss)
-	if memAccess {
+
+	var cycles uint
+	var value uint8
+	if sss == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value = cpu.memory.Read(address)
 		cycles = 7
+	} else {
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		value = *regPtr
+		cycles = 4
 	}
 
-	result := uint16(cpu.A) + uint16(*regPtr)
+	result := uint16(cpu.A) + uint16(value)
 
 	cpu.Carry = result&0b100000000 != 0
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
 	cpu.A = uint8(result & 0xFF)
 	cpu.setFlagSZP(cpu.A)
 	return cycles
@@ -184,20 +213,28 @@ func (cpu *CPU) add(info *stepInfo) uint {
 
 // ADC S     10001SSS          ZSCPA   Add register to A with carry
 func (cpu *CPU) adc(info *stepInfo) uint {
-	var cycles uint = 4
 	_, sss := getOpcodeDDDSSS(info.opcode)
-	regPtr, memAccess := cpu.getOpcodeRegPtr(sss)
-	if memAccess {
-		cycles = 7
-	}
 
+	var cycles uint
+	var value uint8
+	if sss == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value = cpu.memory.Read(address)
+		cycles = 7
+	} else {
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		value = *regPtr
+		cycles = 4
+	}
 	carryVal := uint16(0)
 	if cpu.Carry {
 		carryVal = 1
 	}
-	result := uint16(cpu.A) + uint16(*regPtr) + carryVal
+
+	result := uint16(cpu.A) + uint16(value) + carryVal
+
 	cpu.Carry = result&0b100000000 != 0
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
 	cpu.A = uint8(result & 0xFF)
 	cpu.setFlagSZP(cpu.A)
 	return cycles
@@ -252,26 +289,34 @@ func (cpu *CPU) dad(info *stepInfo) uint {
 	}
 	resultHL = currentHL + addend
 	cpu.Carry = resultHL&0x10000 > 0
-	cpu.H = uint8(currentHL >> 8)
-	cpu.L = uint8(currentHL & 0xFF)
+	cpu.H = uint8(resultHL >> 8)
+	cpu.L = uint8(resultHL & 0xFF)
 	return 10
 }
 
 // SUB S     10010SSS          ZSCPA   Subtract register from A
 func (cpu *CPU) sub(info *stepInfo) uint {
 	_, sss := getOpcodeDDDSSS(info.opcode)
-	regPtr, memAccess := cpu.getOpcodeRegPtr(sss)
 
-	result := uint16(cpu.A) - uint16(*regPtr)
-	cpu.Carry = result>>8 > 0                                           // todo: this should be fixed now
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
+	var cycles uint
+	var value uint8
+	if sss == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value = cpu.memory.Read(address)
+		cycles = 7
+	} else {
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		value = *regPtr
+		cycles = 4
+	}
+
+	result := uint16(cpu.A) - uint16(value)
+
+	cpu.Carry = result>>8 > 0                                         // TODO: this should be fixed now
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
 	cpu.A = uint8(result & 0xFF)
 	cpu.setFlagSZP(cpu.A)
-	if memAccess {
-		return 7
-	} else {
-		return 4
-	}
+	return cycles
 }
 
 // SUI #     11010110 db       ZSCPA   Subtract immediate from A
@@ -307,40 +352,53 @@ func (cpu *CPU) sbi(info *stepInfo) uint {
 // SBB S     10011SSS          ZSCPA   Subtract register from A with borrow
 func (cpu *CPU) sbb(info *stepInfo) uint {
 	_, sss := getOpcodeDDDSSS(info.opcode)
-	regPtr, memAccess := cpu.getOpcodeRegPtr(sss)
 
+	var cycles uint
+	var value uint8
+	if sss == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value = cpu.memory.Read(address)
+		cycles = 7
+	} else {
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		value = *regPtr
+		cycles = 4
+	}
 	carryVal := uint16(0)
 	if cpu.Carry {
 		carryVal = 1
 	}
-	result := uint16(cpu.A) - uint16(*regPtr) - carryVal
-	cpu.Carry = (result >> 8) > 0                                       // todo: this should be fixed now
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *regPtr) & 0b00010000) > 0 // ?? TODO: verify
+	result := uint16(cpu.A) - uint16(value) - carryVal
+
+	cpu.Carry = (result >> 8) > 0                                     // todo: this should be fixed now
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
 
 	cpu.A = uint8(result & 0xFF)
 	cpu.setFlagSZP(cpu.A)
-	if memAccess {
-		return 7
-	} else {
-		return 4
-	}
+	return cycles
 }
 
 // CMP S     10111SSS          ZSPCA   Compare register with A
 func (cpu *CPU) cmp(info *stepInfo) uint {
 	_, sss := getOpcodeDDDSSS(info.opcode)
-	ptr, memoryAccess := cpu.getOpcodeRegPtr(sss)
+	var cycles uint
+	var value uint8
+	if sss == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value = cpu.memory.Read(address)
+		cycles = 7
+	} else {
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		value = *regPtr
+		cycles = 7
+	}
 
-	result := uint16(cpu.A) - uint16(*ptr)
-	cpu.Carry = result>>8 > 0                                        // todo: this should be fixed now
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ *ptr) & 0b00010000) > 0 // ?? TODO: verify
+	result := uint16(cpu.A) - uint16(value)
+	cpu.Carry = result>>8 > 0                                         // todo: this should be fixed now
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
 
 	cpu.setFlagSZP(uint8(result))
-	if memoryAccess {
-		return 7
-	} else {
-		return 4
-	}
+	return cycles
 }
 
 // PUSH RP   11RP0101 *2       -       Push register pair on the stack
@@ -585,12 +643,15 @@ func (cpu *CPU) di(_ *stepInfo) uint {
 // MVI D,#   00DDD110 db       -       Move immediate to register
 func (cpu *CPU) mvi(info *stepInfo) uint {
 	ddd, _ := getOpcodeDDDSSS(info.opcode)
-	regPtr, memoryAccess := cpu.getOpcodeRegPtr(ddd)
 	db, _ := cpu.getOpcodeArgs(info.PC)
-	*regPtr = db
-	if memoryAccess {
+
+	if ddd == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		cpu.memory.Write(address, db)
 		return 10
 	} else {
+		regPtr := cpu.getOpcodeRegPtr(ddd)
+		*regPtr = db
 		return 7
 	}
 }
@@ -642,18 +703,24 @@ func (cpu *CPU) dcx(info *stepInfo) uint {
 // ORA S     10110SSS          ZSPCA   OR  register with A
 func (cpu *CPU) ora(info *stepInfo) uint {
 	_, sss := getOpcodeDDDSSS(info.opcode)
-	ptr, memoryAccess := cpu.getOpcodeRegPtr(sss)
-	cpu.A |= *ptr
+	var cycles uint
+	var value uint8
+	if sss == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value = cpu.memory.Read(address)
+		cycles = 7
+	} else {
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		value = *regPtr
+		cycles = 4
+	}
+
+	cpu.A |= value
 
 	cpu.Carry = false
 	cpu.AuxCarry = false
-
 	cpu.setFlagSZP(cpu.A)
-	if memoryAccess {
-		return 7
-	} else {
-		return 4
-	}
+	return cycles
 }
 
 // ORI #     11110110          ZSPCA   OR  immediate with A
@@ -680,6 +747,8 @@ func (cpu *CPU) rc(info *stepInfo) uint {
 	if cpu.Carry {
 		cpu.ret(info)
 		return 11
+	} else {
+		cpu.PC += 1
 	}
 	return 5
 }
@@ -813,37 +882,47 @@ func (cpu *CPU) cmc(_ *stepInfo) uint {
 // ANA S     10100SSS          ZSCPA   AND register with A
 func (cpu *CPU) ana(info *stepInfo) uint {
 	_, sss := getOpcodeDDDSSS(info.opcode)
-	ptr, memoryAccess := cpu.getOpcodeRegPtr(sss)
-
-	cpu.A &= *ptr
-	cpu.AuxCarry = ((cpu.A | *ptr) & 0x08) != 0 // special case on 8080 documented by intel p1-12
-	cpu.Carry = false
-
-	cpu.setFlagSZP(cpu.A)
-
-	if memoryAccess {
-		return 7
+	var cycles uint
+	var value uint8
+	if sss == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value = cpu.memory.Read(address)
+		cycles = 7
 	} else {
-		return 4
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		value = *regPtr
+		cycles = 4
 	}
+
+	cpu.A &= value
+
+	cpu.AuxCarry = ((cpu.A | value) & 0x08) != 0 // special case on 8080 documented by intel p1-12
+	cpu.Carry = false
+	cpu.setFlagSZP(cpu.A)
+	return cycles
 }
 
 // XRA S     10101SSS          ZSPCA   ExclusiveOR register with A
 func (cpu *CPU) xra(info *stepInfo) uint {
 	_, sss := getOpcodeDDDSSS(info.opcode)
-	ptr, memoryAccess := cpu.getOpcodeRegPtr(sss)
+	var cycles uint
+	var value uint8
+	if sss == 0b110 {
+		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
+		value = cpu.memory.Read(address)
+		cycles = 7
+	} else {
+		regPtr := cpu.getOpcodeRegPtr(sss)
+		value = *regPtr
+		cycles = 4
+	}
 
-	cpu.A ^= *ptr
+	cpu.A ^= value
 
 	cpu.Carry = false
 	cpu.AuxCarry = false
-
 	cpu.setFlagSZP(cpu.A)
-	if memoryAccess {
-		return 7
-	} else {
-		return 4
-	}
+	return cycles
 }
 
 // DAA       00100111          ZSPCA   Decimal Adjust accumulator

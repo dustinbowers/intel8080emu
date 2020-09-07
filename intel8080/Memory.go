@@ -52,7 +52,7 @@ func (m *Memory) Read(address uint16) byte {
 func (m *Memory) Write(address uint16, b byte) {
 	address = address & 0x3FFF // mirror from 0x4000 - 0xFFFF (technically not needed)
 
-	// Protect read only boundaries
+	// Protect read only blocks
 	for _, protectedBlock := range m.readOnlyBlocks {
 		start := protectedBlock.start
 		end := protectedBlock.end
@@ -62,7 +62,9 @@ func (m *Memory) Write(address uint16, b byte) {
 	}
 	if m.DEBUG {
 		if address >= 0x2400 && address <= 0x3fff {
-			fmt.Printf("VRAM WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
+			x := address % 32 * 8
+			y := address / 32
+			fmt.Printf("VRAM WRITE 0b%08b / 0x%02x -> (0x%04x) (X: %d, Y: %d)\n", b, b, address, x, y)
 		} else {
 			//fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
 		}
@@ -85,6 +87,6 @@ func (m *Memory) LoadRomFiles(filenames []string) (uint, error) {
 			offset++
 		}
 	}
-	m.Protect(0, uint16(offset))
+	m.Protect(0, uint16(offset-1))
 	return offset, nil
 }

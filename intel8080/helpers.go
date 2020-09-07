@@ -1,7 +1,6 @@
 package intel8080
 
-// ----------------------------
-// -------- Helpers -----------
+import "fmt"
 
 func (cpu *CPU) setFlagSZP(result uint8) {
 	cpu.Zero = result == 0
@@ -9,9 +8,8 @@ func (cpu *CPU) setFlagSZP(result uint8) {
 	cpu.Parity = getParity(result)
 }
 
-func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) (*uint8, bool) {
+func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) *uint8 {
 	var ptr *uint8
-	memoryAccess := false
 	switch regIndicator {
 	case 0b111:
 		ptr = &cpu.A
@@ -27,16 +25,13 @@ func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) (*uint8, bool) {
 		ptr = &cpu.H
 	case 0b101:
 		ptr = &cpu.L
-	case 0b110:
-		memoryAccess = true
-		memOffset := (uint16(cpu.H) << 8) | uint16(cpu.L)
-		ptr = cpu.memory.GetOffsetPtr(memOffset)
+	default:
+		panic(fmt.Sprintf("Bad register pair indicator 0b%03b\n", regIndicator))
 	}
-	return ptr, memoryAccess
+	return ptr
 }
 
 func (cpu *CPU) getOpcodeArgs(PC uint16) (uint8, uint8) {
-	//return cpu.Memory[PC+1], cpu.Memory[PC+2]
 	return cpu.memory.Read(PC + 1), cpu.memory.Read(PC + 2)
 }
 

@@ -8,7 +8,7 @@ type CPU struct {
 
 	// Registers
 	A, B, C, D, E, H, L uint8
-	PC, SP uint16
+	PC, SP              uint16
 
 	// Flags
 	Sign, Zero, Parity, Carry, AuxCarry      bool
@@ -38,7 +38,7 @@ var instructionNames = []string{
 	"mov e,b", "mov e,c", "mov e,d", "mov e,e", "mov e,h", "mov e,l", "mov e,M", "mov e,a",
 	"mov h,b", "mov h,c", "mov h,d", "mov h,e", "mov h,h", "mov h,l", "mov h,M", "mov h,a",
 	"mov l,b", "mov l,c", "mov l,d", "mov l,e", "mov l,h", "mov l,l", "mov l,M", "mov l,a",
-	"mov M,b", "mov M,c", "mov M,d", "mov M,e", "mov M,h", "mov M,l", "hlt",     "mov M,a",
+	"mov M,b", "mov M,c", "mov M,d", "mov M,e", "mov M,h", "mov M,l", "hlt", "mov M,a",
 	"mov a,b", "mov a,c", "mov a,d", "mov a,e", "mov a,h", "mov a,l", "mov a,M", "mov a,a",
 	"add b", "add c", "add d", "add e", "add h", "add l", "add M", "add a",
 	"adc b", "adc c", "adc d", "adc e", "adc h", "adc l", "adc M", "adc a",

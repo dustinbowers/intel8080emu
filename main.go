@@ -32,9 +32,6 @@ func main() {
 	}
 
 	cpu = intel8080.NewCPU(ioBus, memory)
-	//ioBus.DEBUG = true
-	memory.DEBUG = true
-	cpu.DEBUG = true
 
 	if err != nil {
 		log.Fatalf("load invaders failed: %v", err)
@@ -61,7 +58,7 @@ func main() {
 	screenWidth := 512
 	screenHeight := screenRows * screenWidth / screenCols
 
-	display.Init(screenWidth, screenHeight, screenCols, screenRows)
+	display.Init(screenHeight, screenWidth, screenRows, screenCols)
 	defer display.Cleanup()
 
 	vram := cpu.GetVram()
@@ -93,13 +90,48 @@ func main() {
 			} else if interruptType == 1 {
 				interruptType = 2
 			}
-			_ = display.Draw(vram)
+			_ = display.DrawRotated(vram)
 			// trigger interrupt (this happens in hardware at VBlank and ~1/2 VBlank)
 			cpu.Interrupt(interruptType)
 
 		}
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
+			switch t := event.(type) {
+			case *sdl.KeyboardEvent:
+				if t.Type != sdl.KEYDOWN {
+					continue
+				}
+				switch t.Keysym.Sym {
+				case sdl.K_ESCAPE:
+					running = false
+				case sdl.K_LEFTBRACKET:
+					if cpu.DEBUG {
+						cpu.DEBUG = false
+					} else {
+						cpu.DEBUG = true
+					}
+				case sdl.K_RIGHTBRACKET:
+					if ioBus.DEBUG {
+						ioBus.DEBUG = false
+					} else {
+						ioBus.DEBUG = true
+					}
+				case sdl.K_p: //sdl.K_BACKSLASH:
+					if memory.DEBUG {
+						memory.DEBUG = false
+					} else {
+						memory.DEBUG = true
+					}
+				case sdl.K_COMMA:
+					sleepTime += 10 * time.Millisecond
+					fmt.Printf("sleepTime: %d\n", sleepTime)
+				case sdl.K_PERIOD:
+					sleepTime -= 10 * time.Millisecond
+					if sleepTime < 0 {
+						sleepTime = 0
+					}
+					fmt.Printf("sleepTime: %d\n", sleepTime)
+				}
 			case *sdl.QuitEvent:
 				println("Quit")
 				running = false

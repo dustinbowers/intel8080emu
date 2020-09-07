@@ -57,7 +57,7 @@ func Draw(cells []byte) error {
 			// Yes, it is inefficient to re-draw the entire screen when not needed.
 			// It's done to ensure that each frame's blitting ops take approximately
 			// the same amount of time to complete per frame
-			var color uint = uint(b) & (0x1 << (8-bit))
+			var color uint = uint(b) & (0x1 << (bit))
 			if color > 0 {
 				color = 0xffffffff
 			}
@@ -71,6 +71,50 @@ func Draw(cells []byte) error {
 			_ = surface.FillRect(&rect, uint32(color))
 		}
 	}
+
+	err = window.UpdateSurface()
+	if err != nil {
+		return fmt.Errorf("draw: UpdateSurface failed: %v", err)
+	}
+	return nil
+}
+
+func DrawRotated(cells []byte) error {
+	surface, err := window.GetSurface()
+	if err != nil {
+		panic(err)
+	}
+	err = surface.FillRect(nil, 0)
+	if err != nil {
+		return fmt.Errorf("draw: FillRect failed: %v", err)
+	}
+
+	for i, b := range cells {
+		x := i / 32
+		for bit := 0; bit < 8; bit++ {
+			y := (i %32) * 8 + bit
+
+			xPos := int32(x) * blockWidth
+			yPos := height - int32(y) * blockHeight
+
+			// Yes, it is inefficient to re-draw the entire screen when not needed.
+			// It's done to ensure that each frame's blitting ops take approximately
+			// the same amount of time to complete per frame
+			var color uint = uint(b) & (0x1 << (bit))
+			if color > 0 {
+				color = 0xffffffff
+			}
+
+			rect := sdl.Rect{
+				X: xPos,
+				Y: yPos,
+				W: blockWidth,
+				H: blockHeight,
+			}
+			_ = surface.FillRect(&rect, uint32(color))
+		}
+	}
+
 	err = window.UpdateSurface()
 	if err != nil {
 		return fmt.Errorf("draw: UpdateSurface failed: %v", err)
