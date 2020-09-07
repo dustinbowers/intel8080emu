@@ -2,6 +2,8 @@
 
 An Intel 8080 emulator using SDL
 
+(Note there are still some bugs to be squashed)
+
 # Screenshots
 
 <img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/screen1.png" width="50%">
