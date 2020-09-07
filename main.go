@@ -98,39 +98,59 @@ func main() {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch t := event.(type) {
 			case *sdl.KeyboardEvent:
-				if t.Type != sdl.KEYDOWN {
-					continue
+				// Game input
+				pressed := false
+				if t.Type == sdl.KEYDOWN {
+					pressed = true
+				} else if t.Type == sdl.KEYUP {
+					pressed = false
 				}
 				switch t.Keysym.Sym {
-				case sdl.K_ESCAPE:
-					running = false
-				case sdl.K_LEFTBRACKET:
-					if cpu.DEBUG {
-						cpu.DEBUG = false
-					} else {
-						cpu.DEBUG = true
+				case sdl.K_c:
+					ioBus.HandleInput(0, pressed)
+				case sdl.K_SPACE:
+					ioBus.HandleInput(2, pressed)
+				case sdl.K_w:
+					ioBus.HandleInput(4, pressed)
+				case sdl.K_a:
+					ioBus.HandleInput(5, pressed)
+				case sdl.K_d:
+					ioBus.HandleInput(6, pressed)
+				}
+
+				// Misc input
+				if t.Type == sdl.KEYDOWN {
+					switch t.Keysym.Sym {
+					case sdl.K_ESCAPE:
+						running = false
+					case sdl.K_LEFTBRACKET:
+						if cpu.DEBUG {
+							cpu.DEBUG = false
+						} else {
+							cpu.DEBUG = true
+						}
+					case sdl.K_RIGHTBRACKET:
+						if ioBus.DEBUG {
+							ioBus.DEBUG = false
+						} else {
+							ioBus.DEBUG = true
+						}
+					case sdl.K_p: //sdl.K_BACKSLASH:
+						if memory.DEBUG {
+							memory.DEBUG = false
+						} else {
+							memory.DEBUG = true
+						}
+					case sdl.K_COMMA:
+						sleepTime += 10 * time.Millisecond
+						fmt.Printf("sleepTime: %d\n", sleepTime)
+					case sdl.K_PERIOD:
+						sleepTime -= 10 * time.Millisecond
+						if sleepTime < 0 {
+							sleepTime = 0
+						}
+						fmt.Printf("sleepTime: %d\n", sleepTime)
 					}
-				case sdl.K_RIGHTBRACKET:
-					if ioBus.DEBUG {
-						ioBus.DEBUG = false
-					} else {
-						ioBus.DEBUG = true
-					}
-				case sdl.K_p: //sdl.K_BACKSLASH:
-					if memory.DEBUG {
-						memory.DEBUG = false
-					} else {
-						memory.DEBUG = true
-					}
-				case sdl.K_COMMA:
-					sleepTime += 10 * time.Millisecond
-					fmt.Printf("sleepTime: %d\n", sleepTime)
-				case sdl.K_PERIOD:
-					sleepTime -= 10 * time.Millisecond
-					if sleepTime < 0 {
-						sleepTime = 0
-					}
-					fmt.Printf("sleepTime: %d\n", sleepTime)
 				}
 			case *sdl.QuitEvent:
 				println("Quit")

@@ -23,6 +23,15 @@ func NewIOBus() *IOBus {
 func (bus *IOBus) Read(b byte) byte {
 	switch b {
 	case 0x01:
+		//Read 1
+		//BIT	0	coin (0 when active)
+		//1	P2 start button
+		//2	P1 start button
+		//3	?
+		//4	P1 shoot button
+		//5	P1 joystick left
+		//6	P1 joystick right
+		//7	?
 		if bus.DEBUG {
 			log.Printf("IOBus.Read(0x%02x) = 0b%08b - read input\n", b, bus.input)
 		}
@@ -67,5 +76,13 @@ func (bus *IOBus) Write(b byte, A byte) {
 		}
 	default:
 		//fmt.Printf("IOBus.Write(0x%02x, 0b%08b) ---------\n", b, A)
+	}
+}
+
+func (bus *IOBus) HandleInput(bitNumber uint8, pressed bool) {
+	if pressed {
+		bus.input |= 1 << bitNumber
+	} else {
+		bus.input &= 0 << bitNumber
 	}
 }
