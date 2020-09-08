@@ -8,8 +8,8 @@ An Intel 8080 emulator using SDL
 
 # TODO
 
-[ ] Add sound
-[ ] Add player 2 support
+- [ ] Add sound
+- [ ] Add player 2 support
 
 # Useful Links
 https://pastraiser.com//cpu/i8080/i8080_opcodes.html
