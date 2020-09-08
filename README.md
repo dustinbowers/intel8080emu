@@ -2,7 +2,6 @@
 
 An Intel 8080 emulator using SDL
 
-(Note there are still some bugs to be squashed)
 
 # Screenshots
 
