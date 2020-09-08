@@ -2,12 +2,11 @@
 
 An Intel 8080 emulator using SDL
 
-
 # Screenshots
 
 <img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/screen1.png" width="40%">&nbsp;&nbsp;<img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/screen2.png" width="40%">
 
-## Useful Links
+# Useful Links
 https://pastraiser.com//cpu/i8080/i8080_opcodes.html
 
 http://www.classiccmp.org/dunfield/r/8080.txt
