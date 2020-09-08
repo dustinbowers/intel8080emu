@@ -3,6 +3,9 @@ package intel8080
 type CPU struct {
 	DEBUG bool
 
+	inCallback  func(info *stepInfo)
+	outCallback func(info *stepInfo)
+
 	memory *Memory
 	ioBus  *IOBus
 

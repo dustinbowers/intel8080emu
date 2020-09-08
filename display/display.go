@@ -28,7 +28,7 @@ func Init(screenWidth int, screenHeight int, screenCols int, screenRows int) {
 	blockWidth = width / cols
 	blockHeight = height / rows
 
-	win, err := sdl.CreateWindow("Galaxy Invaders", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+	win, err := sdl.CreateWindow("Intel 8080 Emulator", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		width, height, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
@@ -41,7 +41,6 @@ func Draw(cells []byte) error {
 	if err != nil {
 		panic(err)
 	}
-	err = surface.FillRect(nil, 0)
 	if err != nil {
 		return fmt.Errorf("draw: FillRect failed: %v", err)
 	}
@@ -60,6 +59,8 @@ func Draw(cells []byte) error {
 			var color uint = uint(b) & (0x1 << (bit))
 			if color > 0 {
 				color = 0xffffffff
+			} else {
+				continue
 			}
 
 			rect := sdl.Rect{

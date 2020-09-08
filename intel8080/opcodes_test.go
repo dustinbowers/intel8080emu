@@ -11,14 +11,11 @@ func TestNop(t *testing.T) {
 	tCpu.PC = 0x4
 	var opcode uint8 = 00000000
 	memory.Write(tCpu.PC, opcode)
-	//var stepInfo = stepInfo{PC, opcode}
 
-	//tCpu.memory.Write(PC+0, opcode)
 	cycles, err := tCpu.Step()
 	if err != nil {
 		t.Fail()
 	}
-	//cycles := tCpu.nop(&stepInfo)
 
 	wantCycles := uint(4)
 	if cycles != wantCycles {

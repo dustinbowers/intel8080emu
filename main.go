@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
 	"intel8080/display"
@@ -11,10 +12,21 @@ import (
 	"time"
 )
 
+var (
+	testRomPath = flag.String("test", "", "Run a test ROM")
+)
+
 var cpu *intel8080.CPU
 
 func main() {
 	fmt.Println("Launching...")
+
+	flag.Parse()
+	if *testRomPath != "" {
+		fmt.Printf("Running a test ROM - %s\n", *testRomPath)
+		intel8080.RunTestRom(*testRomPath)
+		return
+	}
 
 	ioBus := intel8080.NewIOBus()
 
@@ -25,7 +37,7 @@ func main() {
 		romDir + "invaders.g",
 		romDir + "invaders.f",
 		romDir + "invaders.e",
-	})
+	}, 0x0, true)
 	fmt.Printf("%d bytes loaded\n", count)
 	if err != nil {
 		fmt.Printf("LoadRomFiles failed: %v\n", err)
@@ -63,11 +75,11 @@ func main() {
 
 	vram := cpu.GetVram()
 	_ = display.Draw(vram)
-	fmt.Println("Starting tick loop")
+	fmt.Println("Starting CPU")
 	var holdCycles uint
 	var currCycles uint
 	var interruptType uint = 1
-	sleepTime := (1000 / 2000) * time.Millisecond
+	sleepTime := (1000 / 2500) * time.Millisecond
 	for running != false {
 		if holdCycles > 0 {
 			holdCycles--
@@ -94,68 +106,70 @@ func main() {
 			// trigger interrupt (this happens in hardware at VBlank and ~1/2 VBlank)
 			cpu.Interrupt(interruptType)
 
-		}
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch t := event.(type) {
-			case *sdl.KeyboardEvent:
-				// Game input
-				pressed := false
-				if t.Type == sdl.KEYDOWN {
-					pressed = true
-				} else if t.Type == sdl.KEYUP {
-					pressed = false
-				}
-				switch t.Keysym.Sym {
-				case sdl.K_c:
-					ioBus.HandleInput(0, pressed)
-				case sdl.K_SPACE:
-					ioBus.HandleInput(2, pressed)
-				case sdl.K_w:
-					ioBus.HandleInput(4, pressed)
-				case sdl.K_a:
-					ioBus.HandleInput(5, pressed)
-				case sdl.K_d:
-					ioBus.HandleInput(6, pressed)
-				}
-
-				// Misc input
-				if t.Type == sdl.KEYDOWN {
-					switch t.Keysym.Sym {
-					case sdl.K_ESCAPE:
-						running = false
-					case sdl.K_LEFTBRACKET:
-						if cpu.DEBUG {
-							cpu.DEBUG = false
-						} else {
-							cpu.DEBUG = true
-						}
-					case sdl.K_RIGHTBRACKET:
-						if ioBus.DEBUG {
-							ioBus.DEBUG = false
-						} else {
-							ioBus.DEBUG = true
-						}
-					case sdl.K_p: //sdl.K_BACKSLASH:
-						if memory.DEBUG {
-							memory.DEBUG = false
-						} else {
-							memory.DEBUG = true
-						}
-					case sdl.K_COMMA:
-						sleepTime += 10 * time.Millisecond
-						fmt.Printf("sleepTime: %d\n", sleepTime)
-					case sdl.K_PERIOD:
-						sleepTime -= 10 * time.Millisecond
-						if sleepTime < 0 {
-							sleepTime = 0
-						}
-						fmt.Printf("sleepTime: %d\n", sleepTime)
+			for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+				switch t := event.(type) {
+				case *sdl.KeyboardEvent:
+					// Game input
+					pressed := false
+					if t.Type == sdl.KEYDOWN {
+						pressed = true
+					} else if t.Type == sdl.KEYUP {
+						pressed = false
 					}
+					switch t.Keysym.Sym {
+					case sdl.K_c:
+						ioBus.HandleInput(1, 0, pressed)
+					case sdl.K_SPACE:
+						ioBus.HandleInput(1, 2, pressed)
+					case sdl.K_w:
+						ioBus.HandleInput(1, 4, pressed)
+					case sdl.K_a:
+						ioBus.HandleInput(1, 5, pressed)
+					case sdl.K_d:
+						ioBus.HandleInput(1, 6, pressed)
+					case sdl.K_t:
+						ioBus.HandleInput(2, 2, pressed)
+					}
+
+					// Misc input
+					if t.Type == sdl.KEYDOWN {
+						switch t.Keysym.Sym {
+						case sdl.K_ESCAPE:
+							running = false
+						case sdl.K_LEFTBRACKET:
+							if cpu.DEBUG {
+								cpu.DEBUG = false
+							} else {
+								cpu.DEBUG = true
+							}
+						case sdl.K_RIGHTBRACKET:
+							if ioBus.DEBUG {
+								ioBus.DEBUG = false
+							} else {
+								ioBus.DEBUG = true
+							}
+						case sdl.K_p: //sdl.K_BACKSLASH:
+							if memory.DEBUG {
+								memory.DEBUG = false
+							} else {
+								memory.DEBUG = true
+							}
+						case sdl.K_COMMA:
+							sleepTime += 1 * time.Millisecond
+							fmt.Printf("sleepTime: %d\n", sleepTime)
+						case sdl.K_PERIOD:
+							sleepTime -= 1 * time.Millisecond
+							if sleepTime < 0 {
+								sleepTime = 0
+							}
+							fmt.Printf("sleepTime: %d\n", sleepTime)
+						}
+					}
+				case *sdl.QuitEvent:
+					println("Quit")
+					running = false
+					break
 				}
-			case *sdl.QuitEvent:
-				println("Quit")
-				running = false
-				break
 			}
 		}
 		time.Sleep(sleepTime)

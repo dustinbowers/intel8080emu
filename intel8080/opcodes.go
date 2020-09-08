@@ -262,7 +262,7 @@ func (cpu *CPU) aci(info *stepInfo) uint {
 		carryVal = 1
 	}
 	result := uint16(cpu.A) + uint16(db) + carryVal
-	cpu.Carry = result&0b100000000 != 0
+	cpu.Carry = result>>8 > 0                                      //result&0b100000000 != 0
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
 
 	cpu.A = uint8(result)
@@ -660,9 +660,9 @@ func (cpu *CPU) mvi(info *stepInfo) uint {
 func (cpu *CPU) cpi(info *stepInfo) uint {
 	// TODO: test this...
 	db, _ := cpu.getOpcodeArgs(info.PC)
-	result := int16(cpu.A) - int16(db)
+	result := uint16(cpu.A) - uint16(db)
 	cpu.Carry = result>>8 > 0 // todo: this should be fixed now
-	cpu.AuxCarry = ^(int16(cpu.A)^result^int16(db))&0x10 > 0
+	cpu.AuxCarry = ^(uint16(cpu.A)^result^uint16(db))&0x10 > 0
 
 	cpu.setFlagSZP(uint8(result))
 	return 0
@@ -737,6 +737,8 @@ func (cpu *CPU) ori(info *stepInfo) uint {
 ///////////////////
 // RETs
 ///////////////////
+
+// RET       11001001          -       Unconditional return from subroutine
 func (cpu *CPU) ret(_ *stepInfo) uint {
 	hb, lb := cpu.memory.Read(cpu.SP+1), cpu.memory.Read(cpu.SP)
 	cpu.SP += 2
@@ -894,10 +896,11 @@ func (cpu *CPU) ana(info *stepInfo) uint {
 		cycles = 4
 	}
 
-	cpu.A &= value
+	result := cpu.A & value
 
 	cpu.AuxCarry = ((cpu.A | value) & 0x08) != 0 // special case on 8080 documented by intel p1-12
 	cpu.Carry = false
+	cpu.A = result
 	cpu.setFlagSZP(cpu.A)
 	return cycles
 }
@@ -964,11 +967,11 @@ func (cpu *CPU) xthl(_ *stepInfo) uint {
 // ANI #     11100110 db       ZSPCA   AND immediate with A
 func (cpu *CPU) ani(info *stepInfo) uint {
 	db, _ := cpu.getOpcodeArgs(info.PC)
-	cpu.A &= db
 
 	cpu.Carry = false
 	cpu.AuxCarry = ((cpu.A | db) & 0x08) != 0 // special case on 8080
 
+	cpu.A &= db
 	cpu.setFlagSZP(cpu.A)
 	return 7
 }
@@ -976,11 +979,11 @@ func (cpu *CPU) ani(info *stepInfo) uint {
 // XRI #     11101110 db       ZSPCA   ExclusiveOR immediate with A
 func (cpu *CPU) xri(info *stepInfo) uint {
 	db, _ := cpu.getOpcodeArgs(info.PC)
-	cpu.A ^= db
 
 	cpu.Carry = false
 	cpu.AuxCarry = false
 
+	cpu.A ^= db
 	cpu.setFlagSZP(cpu.A)
 	return 7
 }
@@ -1017,14 +1020,24 @@ func (cpu *CPU) rst(_ *stepInfo) uint {
 	return 0
 }
 
+// IN p      11011011 pa       -       Read input port into A
 func (cpu *CPU) in(info *stepInfo) uint {
+	if cpu.inCallback != nil {
+		cpu.inCallback(info)
+	}
+
 	db, _ := cpu.getOpcodeArgs(info.PC)
 	b := cpu.ioBus.Read(db)
 	cpu.A = b
 	return 10
 }
 
+// OUT p     11010011 pa       -       Write A to output port
 func (cpu *CPU) out(info *stepInfo) uint {
+	if cpu.outCallback != nil {
+		cpu.outCallback(info)
+	}
+
 	db, _ := cpu.getOpcodeArgs(info.PC)
 	cpu.ioBus.Write(db, cpu.A)
 	return 10

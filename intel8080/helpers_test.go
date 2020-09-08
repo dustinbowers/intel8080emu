@@ -10,7 +10,6 @@ func TestGetOpcodeRegPtr(t *testing.T) {
 	var tCpu = NewCPU(ioBus, memory)
 	tCpu.H = 0xAA
 	tCpu.L = 0xBB
-	memOffset := (uint16(tCpu.H) << 8) | uint16(tCpu.L)
 	tests := []struct {
 		inRegIndicator   uint8
 		wantPtr          *uint8
@@ -23,12 +22,10 @@ func TestGetOpcodeRegPtr(t *testing.T) {
 		{0b011, &tCpu.E, false},
 		{0b100, &tCpu.H, false},
 		{0b101, &tCpu.L, false},
-		{0b110, memory.GetOffsetPtr(memOffset), true},
 	}
 	for i, tt := range tests {
-		gotPtr, gotMemoryAccess := tCpu.getOpcodeRegPtr(tt.inRegIndicator)
-		if gotPtr != tt.wantPtr ||
-			gotMemoryAccess != tt.wantMemoryAccess {
+		gotPtr := tCpu.getOpcodeRegPtr(tt.inRegIndicator)
+		if gotPtr != tt.wantPtr {
 			t.Fatalf("ind: %d\n", i)
 		}
 	}

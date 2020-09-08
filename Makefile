@@ -18,6 +18,7 @@ run:
 
 space-invaders:
 # 	GOOS=linux GOARCH=amd64 go build $(GO_BUILD_FLAGS) -o ${BUILD_PATH}/$(APP_NAME)-linux ./
+# 	GOOS=windows GOARCH=amd64 go build $(GO_BUILD_FLAGS) -o ${BUILD_PATH}/$(APP_NAME)-windows.exe ./
 	go build $(GO_BUILD_FLAGS) -o ${BUILD_PATH}/$(APP_NAME)-darwin ./
 	printf ${VERSION} > ${BUILD_PATH}/version
 	chmod a+x ${BUILD_PATH}/$(APP_NAME)-*

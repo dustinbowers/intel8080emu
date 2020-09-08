@@ -18,7 +18,7 @@ type protectedBlocks struct {
 
 func NewMemory(size uint16) *Memory {
 	m := Memory{}
-	m.bytes = make([]byte, size)
+	m.bytes = make([]byte, uint32(size)+1)
 	return &m
 }
 
@@ -69,12 +69,11 @@ func (m *Memory) Write(address uint16, b byte) {
 			//fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
 		}
 	}
-
 	m.bytes[address] = b
 }
 
-func (m *Memory) LoadRomFiles(filenames []string) (uint, error) {
-	offset := uint(0)
+func (m *Memory) LoadRomFiles(filenames []string, offset uint16, protectRom bool) (uint16, error) {
+	//offset := uint(0)
 	for _, romPath := range filenames {
 		fmt.Printf("loading %s\n", romPath)
 		data, err := ioutil.ReadFile(romPath)
@@ -87,6 +86,8 @@ func (m *Memory) LoadRomFiles(filenames []string) (uint, error) {
 			offset++
 		}
 	}
-	m.Protect(0, uint16(offset-1))
+	if protectRom == true {
+		m.Protect(0, uint16(offset-1))
+	}
 	return offset, nil
 }
