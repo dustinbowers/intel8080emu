@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
+	"intel8080/colormask"
 	"intel8080/display"
 	"intel8080/intel8080"
 	"log"
@@ -65,16 +66,20 @@ func main() {
 		}
 	}()
 
-	screenCols := 256
-	screenRows := 224
-	screenWidth := 512
+	screenCols := uint(256)
+	screenRows := uint(224)
+	screenWidth := uint(512)
 	screenHeight := screenRows * screenWidth / screenCols
 
 	display.Init(screenHeight, screenWidth, screenRows, screenCols)
 	defer display.Cleanup()
+	cm := colormask.NewColorMask()
+	cm.AddBoxMask(0,screenCols, 48, 64,0xff00ff00)
+	cm.AddBoxMask(0,screenCols, 195, 224,0xffff0000)
+	display.SetColorMask(cm)
 
 	vram := cpu.GetVram()
-	_ = display.Draw(vram)
+	_ = display.DrawRotated(vram)
 	fmt.Println("Starting CPU")
 	var holdCycles uint
 	var currCycles uint
@@ -96,7 +101,6 @@ func main() {
 
 		if currCycles > 16666 {
 			currCycles = 0
-			// toggle interrupt type between 1 and 2
 			if interruptType == 2 {
 				interruptType = 1
 			} else if interruptType == 1 {
@@ -148,7 +152,7 @@ func main() {
 							} else {
 								ioBus.DEBUG = true
 							}
-						case sdl.K_p: //sdl.K_BACKSLASH:
+						case sdl.K_p:
 							if memory.DEBUG {
 								memory.DEBUG = false
 							} else {

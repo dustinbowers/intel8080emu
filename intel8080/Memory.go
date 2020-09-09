@@ -82,12 +82,12 @@ func (m *Memory) LoadRomFiles(filenames []string, offset uint16, protectRom bool
 		}
 
 		for _, b := range data {
-			m.Write(uint16(offset), b)
+			m.Write(offset, b)
 			offset++
 		}
 	}
 	if protectRom == true {
-		m.Protect(0, uint16(offset-1))
+		m.Protect(0, offset-1)
 	}
 	return offset, nil
 }

@@ -3,6 +3,7 @@ package intel8080
 type CPU struct {
 	DEBUG bool
 
+	// These are used for hooking IN/OUT if needed (currently for debugging)
 	inCallback  func(info *stepInfo)
 	outCallback func(info *stepInfo)
 
@@ -17,8 +18,8 @@ type CPU struct {
 	Sign, Zero, Parity, Carry, AuxCarry      bool
 	deferInterruptsEnable, InterruptsEnabled bool
 
-	// op table
-	table []func(*stepInfo) uint
+	// Opcode look-up table
+	lutOpcodeFunc map[uint8]func(info *stepInfo) uint
 }
 
 type stepInfo struct {
@@ -100,8 +101,8 @@ var pcAdvanceMask = []uint8{
 	0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0,
 }
 
-func (cpu *CPU) createInstructionTable() {
-	cpu.table = []func(*stepInfo) uint{
+func (cpu *CPU) createInstructionLut() {
+	opTable := []func(*stepInfo) uint{
 		cpu.nop, cpu.lxi, cpu.stax, cpu.inx, cpu.inr, cpu.dcr, cpu.mvi, cpu.rlc, nil, cpu.dad, cpu.ldax, cpu.dcx, cpu.inr, cpu.dcr, cpu.mvi, cpu.rrc,
 		nil, cpu.lxi, cpu.stax, cpu.inx, cpu.inr, cpu.dcr, cpu.mvi, cpu.ral, nil, cpu.dad, cpu.ldax, cpu.dcx, cpu.inr, cpu.dcr, cpu.mvi, cpu.rar,
 		nil, cpu.lxi, cpu.shld, cpu.inx, cpu.inr, cpu.dcr, cpu.mvi, cpu.daa, nil, cpu.dad, cpu.lhld, cpu.dcx, cpu.inr, cpu.dcr, cpu.mvi, cpu.cma,
@@ -122,13 +123,18 @@ func (cpu *CPU) createInstructionTable() {
 		cpu.rpo, cpu.pop, cpu.jpo, cpu.xthl, cpu.cpo, cpu.push, cpu.ani, cpu.rst, cpu.rpe, cpu.pchl, cpu.jpe, cpu.xchg, cpu.cpe, nil, cpu.xri, cpu.rst,
 		cpu.rp, cpu.pop, cpu.jp, cpu.di, cpu.cp, cpu.push, cpu.ori, cpu.rst, cpu.rm, cpu.sphl, cpu.jm, cpu.ei, cpu.cm, nil, cpu.cpi, cpu.rst,
 	}
+
+	cpu.lutOpcodeFunc = make(map[uint8]func(info *stepInfo) uint)
+	for i, opFunc := range opTable {
+		cpu.lutOpcodeFunc[uint8(i)] = opFunc
+	}
 }
 
 func NewCPU(bus *IOBus, mem *Memory) *CPU {
 	cpu := CPU{}
 	cpu.ioBus = bus
 	cpu.memory = mem
-	cpu.createInstructionTable()
+	cpu.createInstructionLut()
 	cpu.Reset()
 	return &cpu
 }

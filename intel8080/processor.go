@@ -6,7 +6,7 @@ import (
 
 func (cpu *CPU) Step() (uint, error) {
 	opcode := cpu.memory.Read(cpu.PC)
-	opcodeFunc := cpu.table[opcode]
+	opcodeFunc := cpu.lutOpcodeFunc[opcode]
 	stepInfo := stepInfo{
 		PC:     cpu.PC,
 		opcode: opcode,

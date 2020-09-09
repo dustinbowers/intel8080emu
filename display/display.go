@@ -3,6 +3,7 @@ package display
 import (
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
+	"intel8080/colormask"
 )
 
 var (
@@ -12,11 +13,13 @@ var (
 	cols        int32
 	blockWidth  int32
 	blockHeight int32
+
+	colorMask *colormask.ColorMask
 )
 
 var window *sdl.Window
 
-func Init(screenWidth int, screenHeight int, screenCols int, screenRows int) {
+func Init(screenWidth uint, screenHeight uint, screenCols uint, screenRows uint) {
 	if err := sdl.Init(sdl.INIT_VIDEO | sdl.INIT_AUDIO); err != nil {
 		panic(err)
 	}
@@ -34,6 +37,10 @@ func Init(screenWidth int, screenHeight int, screenCols int, screenRows int) {
 		panic(err)
 	}
 	window = win
+}
+
+func SetColorMask(c *colormask.ColorMask) {
+	colorMask = c
 }
 
 func Draw(cells []byte) error {
@@ -59,8 +66,6 @@ func Draw(cells []byte) error {
 			var color uint = uint(b) & (0x1 << (bit))
 			if color > 0 {
 				color = 0xffffffff
-			} else {
-				continue
 			}
 
 			rect := sdl.Rect{
@@ -101,9 +106,16 @@ func DrawRotated(cells []byte) error {
 			// Yes, it is inefficient to re-draw the entire screen when not needed.
 			// It's done to ensure that each frame's blitting ops take approximately
 			// the same amount of time to complete per frame
-			var color uint = uint(b) & (0x1 << (bit))
-			if color > 0 {
-				color = 0xffffffff
+			var on uint = uint(b) & (0x1 << (bit))
+
+			var color uint32
+			if on > 0 {
+				masked, ok := colorMask.Color[uint(x)][uint(y)]
+				if ok {
+					color = masked
+				} else {
+					color = 0xffffffff
+				}
 			}
 
 			rect := sdl.Rect{
@@ -112,7 +124,7 @@ func DrawRotated(cells []byte) error {
 				W: blockWidth,
 				H: blockHeight,
 			}
-			_ = surface.FillRect(&rect, uint32(color))
+			_ = surface.FillRect(&rect, color)
 		}
 	}
 

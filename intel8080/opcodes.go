@@ -205,7 +205,7 @@ func (cpu *CPU) add(info *stepInfo) uint {
 	result := uint16(cpu.A) + uint16(value)
 
 	cpu.Carry = result&0b100000000 != 0
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0
 	cpu.A = uint8(result & 0xFF)
 	cpu.setFlagSZP(cpu.A)
 	return cycles
@@ -234,7 +234,7 @@ func (cpu *CPU) adc(info *stepInfo) uint {
 	result := uint16(cpu.A) + uint16(value) + carryVal
 
 	cpu.Carry = result&0b100000000 != 0
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0
 	cpu.A = uint8(result & 0xFF)
 	cpu.setFlagSZP(cpu.A)
 	return cycles
@@ -246,7 +246,7 @@ func (cpu *CPU) adi(info *stepInfo) uint {
 
 	result := uint16(cpu.A) + uint16(db)
 	cpu.Carry = result&0b100000000 != 0
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0
 
 	cpu.A = uint8(result)
 	cpu.setFlagSZP(cpu.A)
@@ -262,8 +262,8 @@ func (cpu *CPU) aci(info *stepInfo) uint {
 		carryVal = 1
 	}
 	result := uint16(cpu.A) + uint16(db) + carryVal
-	cpu.Carry = result>>8 > 0                                      //result&0b100000000 != 0
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.Carry = result>>8 > 0
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0
 
 	cpu.A = uint8(result)
 	cpu.setFlagSZP(cpu.A)
@@ -312,8 +312,8 @@ func (cpu *CPU) sub(info *stepInfo) uint {
 
 	result := uint16(cpu.A) - uint16(value)
 
-	cpu.Carry = result>>8 > 0                                         // TODO: this should be fixed now
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.Carry = result>>8 > 0
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0
 	cpu.A = uint8(result & 0xFF)
 	cpu.setFlagSZP(cpu.A)
 	return cycles
@@ -324,8 +324,8 @@ func (cpu *CPU) sui(info *stepInfo) uint {
 	db, _ := cpu.getOpcodeArgs(info.PC)
 
 	result := uint16(cpu.A) - uint16(db)
-	cpu.Carry = result>>8 > 0                                      // todo: this should be fixed now
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.Carry = result>>8 > 0
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0
 
 	cpu.A = uint8(result)
 	cpu.setFlagSZP(cpu.A)
@@ -341,8 +341,8 @@ func (cpu *CPU) sbi(info *stepInfo) uint {
 		carryVal = 1
 	}
 	result := uint16(cpu.A) - uint16(db) - carryVal
-	cpu.Carry = result>>8 > 0                                      // todo: this should be fixed now
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0 // ?? TODO: verify
+
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0
 
 	cpu.A = uint8(result)
 	cpu.setFlagSZP(cpu.A)
@@ -370,8 +370,8 @@ func (cpu *CPU) sbb(info *stepInfo) uint {
 	}
 	result := uint16(cpu.A) - uint16(value) - carryVal
 
-	cpu.Carry = (result >> 8) > 0                                     // todo: this should be fixed now
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.Carry = (result >> 8) > 0
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0
 
 	cpu.A = uint8(result & 0xFF)
 	cpu.setFlagSZP(cpu.A)
@@ -394,8 +394,8 @@ func (cpu *CPU) cmp(info *stepInfo) uint {
 	}
 
 	result := uint16(cpu.A) - uint16(value)
-	cpu.Carry = result>>8 > 0                                         // todo: this should be fixed now
-	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0 // ?? TODO: verify
+	cpu.Carry = result>>8 > 0
+	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ value) & 0b00010000) > 0
 
 	cpu.setFlagSZP(uint8(result))
 	return cycles
@@ -543,7 +543,6 @@ func (cpu *CPU) cnz(info *stepInfo) uint {
 // JMPs
 ////////////////////
 func (cpu *CPU) jmp(info *stepInfo) uint {
-	// TODO: Ensure lb,hb order is correct...
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
 	return 10
@@ -658,10 +657,9 @@ func (cpu *CPU) mvi(info *stepInfo) uint {
 
 // CPI #     11111110          ZSPCA   Compare immediate with A
 func (cpu *CPU) cpi(info *stepInfo) uint {
-	// TODO: test this...
 	db, _ := cpu.getOpcodeArgs(info.PC)
 	result := uint16(cpu.A) - uint16(db)
-	cpu.Carry = result>>8 > 0 // todo: this should be fixed now
+	cpu.Carry = result>>8 > 0
 	cpu.AuxCarry = ^(uint16(cpu.A)^result^uint16(db))&0x10 > 0
 
 	cpu.setFlagSZP(uint8(result))
@@ -949,7 +947,6 @@ func (cpu *CPU) daa(_ *stepInfo) uint {
 
 	cpu.setFlagSZP(uint8(daa))
 
-	//// TODO: above could definitely be wrong for BCD formatting
 	return 4
 }
 
