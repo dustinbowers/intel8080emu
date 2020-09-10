@@ -89,14 +89,14 @@ func (bus *IOBus) HandleInput(portNumber uint8, bitNumber uint8, pressed bool) {
 		if pressed {
 			bus.input1 |= 1 << bitNumber
 		} else {
-			bus.input1 &= 0 << bitNumber
+			bus.input1 &= ^(1 << bitNumber)
 		}
 	} else if portNumber == 2 {
 		if pressed {
 			if pressed {
 				bus.input2 |= 1 << bitNumber
 			} else {
-				bus.input2 &= 0 << bitNumber
+				bus.input2 &= ^(1 << bitNumber)
 			}
 		}
 	}
