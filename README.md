@@ -2,9 +2,9 @@
 
 An Intel 8080 emulator using SDL, meant for running Space Invaders by Taito
 
-# Screenshots
+# Gameplay
 
-<img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/gameplay.gif" width="40%">&nbsp;&nbsp;<img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/screen2.png" width="40%">
+<img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/gameplay.gif" width="40%">
 
 # Input
 
