@@ -2,7 +2,7 @@
 
 An Intel 8080 emulator using SDL, meant for running Space Invaders by Taito
 
-(NOTE: there's still a bug that causes a crash after death. That's still TODO)
+(NOTE: there's still a bug that causes a crash after game-over due to a write to ROM. That's still TODO)
 
 # Gameplay
 
