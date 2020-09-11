@@ -2,6 +2,8 @@
 
 An Intel 8080 emulator using SDL, meant for running Space Invaders by Taito
 
+(NOTE: there's still a bug that causes a crash after death. That's still TODO)
+
 # Gameplay
 
 <img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/gameplay.gif" width="40%">
@@ -32,6 +34,7 @@ MICROCOSM ASSOCIATES 8080/8085 CPU DIAGNOSTIC
 
 # TODO
 
+- [ ] Fix Crash bug after Game Over
 - [ ] Add sound
 - [ ] Add player 2 support
 
