@@ -2,13 +2,13 @@
 
 An Intel 8080 emulator using SDL, meant for running Space Invaders by Taito
 
-(NOTE: there's still a bug that causes a crash after death. That's still TODO)
+(NOTE: there's still a bug that causes a crash after game-over due to a write to ROM. That's still TODO)
 
-# Gameplay
+## Gameplay
 
 <img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/gameplay.gif" width="40%">
 
-# Input
+## Input
 
 | Key     	| Description              	|
 |---------	|--------------------------	|
@@ -18,7 +18,7 @@ An Intel 8080 emulator using SDL, meant for running Space Invaders by Taito
 |    W    	| P1 shoot                 	|
 |    T    	| Tilt machine (Game Over) 	|
 
-# Testing
+## Testing
 
 ```
 ./build/space-invaders-darwin -test=roms/tests/TST8080.COM
@@ -32,13 +32,13 @@ MICROCOSM ASSOCIATES 8080/8085 CPU DIAGNOSTIC
  CPU IS OPERATIONAL
  ```
 
-# TODO
+## TODO
 
 - [ ] Fix Crash bug after Game Over
 - [ ] Add sound
 - [ ] Add player 2 support
 
-# Useful Links
+## Useful Links
 https://pastraiser.com//cpu/i8080/i8080_opcodes.html
 
 http://www.classiccmp.org/dunfield/r/8080.txt
