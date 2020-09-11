@@ -15,10 +15,10 @@ func (c *ColorMask) AddBoxMask(startX, endX, startY, endY uint, color uint32) {
 	for i := startX; i <= endX; i++ {
 		for j := startY; j < endY; j++ {
 			_, ok := c.Color[i]
-			if !ok { c.Color[i] = map[uint]uint32{}}
+			if !ok {
+				c.Color[i] = map[uint]uint32{}
+			}
 			c.Color[i][j] = color
 		}
 	}
 }
-
-

@@ -75,8 +75,8 @@ func main() {
 	defer display.Cleanup()
 	cm := colormask.NewColorMask()
 	// TODO: get better Y-offsets for these color bands
-	cm.AddBoxMask(0,screenCols, 48, 64,0xff00ff00)
-	cm.AddBoxMask(0,screenCols, 195, 224,0xffff0000)
+	cm.AddBoxMask(0, screenCols, 48, 64, 0xff00ff00)
+	cm.AddBoxMask(0, screenCols, 195, 224, 0xffff0000)
 	display.SetColorMask(cm)
 
 	vram := cpu.GetVram()

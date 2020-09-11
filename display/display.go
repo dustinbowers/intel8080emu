@@ -55,7 +55,7 @@ func Draw(cells []byte) error {
 	for i, b := range cells {
 		y := i / 32
 		for bit := 0; bit < 8; bit++ {
-			x := (i %32) * 8 + bit
+			x := (i%32)*8 + bit
 
 			xPos := int32(x) * blockWidth
 			yPos := int32(y) * blockHeight
@@ -98,10 +98,10 @@ func DrawRotated(cells []byte) error {
 	for i, b := range cells {
 		x := i / 32
 		for bit := 0; bit < 8; bit++ {
-			y := (i %32) * 8 + bit
+			y := (i%32)*8 + bit
 
 			xPos := int32(x) * blockWidth
-			yPos := height - int32(y) * blockHeight
+			yPos := height - int32(y)*blockHeight
 
 			// Yes, it is inefficient to re-draw the entire screen when not needed.
 			// It's done to ensure that each frame's blitting ops take approximately
