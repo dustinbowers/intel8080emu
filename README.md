@@ -33,7 +33,7 @@ MICROCOSM ASSOCIATES 8080/8085 CPU DIAGNOSTIC
  ```
 
 ## TODO
-
+- [ ] Set more accurate vertical offsets for the the red/green color bands 
 - [ ] Fix Crash bug after Game Over
 - [ ] Add sound
 - [ ] Add player 2 support
