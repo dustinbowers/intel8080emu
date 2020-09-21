@@ -67,7 +67,7 @@ func (cpu *CPU) inr(info *stepInfo) uint {
 func (cpu *CPU) dcr(info *stepInfo) uint {
 	ddd, _ := getOpcodeDDDSSS(info.opcode)
 	if ddd == 0b110 {
-		// increment memory
+		// decrement value in memory
 		address := (uint16(cpu.H) << 8) | uint16(cpu.L)
 		value := cpu.memory.Read(address)
 		value -= 1
@@ -77,7 +77,7 @@ func (cpu *CPU) dcr(info *stepInfo) uint {
 		cpu.setFlagSZP(value)
 		return 10
 	} else {
-		// increment register
+		// decrement register
 		regPtr := cpu.getOpcodeRegPtr(ddd)
 		*regPtr -= 1
 
