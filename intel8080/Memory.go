@@ -31,7 +31,7 @@ func (m *Memory) GetOffsetPtr(address uint16) *byte {
 	return &m.bytes[address]
 }
 
-func (m *Memory) GetMemorySlice(start uint16, end uint16) []byte {
+func (m *Memory) GetSlice(start uint16, end uint16) []byte {
 	return m.bytes[start:end]
 }
 
@@ -73,7 +73,6 @@ func (m *Memory) Write(address uint16, b byte) {
 }
 
 func (m *Memory) LoadRomFiles(filenames []string, offset uint16, protectRom bool) (uint16, error) {
-	//offset := uint(0)
 	for _, romPath := range filenames {
 		fmt.Printf("loading %s\n", romPath)
 		data, err := ioutil.ReadFile(romPath)

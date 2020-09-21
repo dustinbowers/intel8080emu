@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
-	"intel8080/colormask"
 	"intel8080/display"
 	"intel8080/intel8080"
 	"log"
@@ -29,8 +28,6 @@ func main() {
 		return
 	}
 
-	ioBus := intel8080.NewIOBus()
-
 	memory := intel8080.NewMemory(0x4000)
 	romDir := "roms/"
 	count, err := memory.LoadRomFiles([]string{
@@ -42,12 +39,15 @@ func main() {
 	fmt.Printf("%d bytes loaded\n", count)
 	if err != nil {
 		fmt.Printf("LoadRomFiles failed: %v\n", err)
+		os.Exit(1)
 	}
 
+	ioBus := intel8080.NewIOBus()
 	cpu = intel8080.NewCPU(ioBus, memory)
 
 	if err != nil {
 		log.Fatalf("load invaders failed: %v", err)
+		os.Exit(0)
 	}
 
 	running := true
@@ -73,7 +73,7 @@ func main() {
 
 	display.Init(screenHeight, screenWidth, screenRows, screenCols)
 	defer display.Cleanup()
-	cm := colormask.NewColorMask()
+	cm := display.NewColorMask()
 	// TODO: get better Y-offsets for these color bands
 	cm.AddBoxMask(0, screenCols, 48, 64, 0xff00ff00)
 	cm.AddBoxMask(0, screenCols, 195, 224, 0xffff0000)
@@ -85,7 +85,7 @@ func main() {
 	var holdCycles uint
 	var currCycles uint
 	var interruptType uint = 1
-	sleepTime := (1000 / 2500) * time.Millisecond
+	sleepTime := (1000 / 2500) * time.Millisecond // TODO: fix bug here (sleepTime is being set to 0)
 	for running != false {
 		if holdCycles > 0 {
 			holdCycles--

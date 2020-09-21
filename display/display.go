@@ -3,7 +3,6 @@ package display
 import (
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
-	"intel8080/colormask"
 )
 
 var (
@@ -14,7 +13,7 @@ var (
 	blockWidth  int32
 	blockHeight int32
 
-	colorMask *colormask.ColorMask
+	colorMask *ColorMask
 )
 
 var window *sdl.Window
@@ -39,7 +38,7 @@ func Init(screenWidth uint, screenHeight uint, screenCols uint, screenRows uint)
 	window = win
 }
 
-func SetColorMask(c *colormask.ColorMask) {
+func SetColorMask(c *ColorMask) {
 	colorMask = c
 }
 

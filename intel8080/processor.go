@@ -27,10 +27,10 @@ func (cpu *CPU) Step() (uint, error) {
 
 	// Execute current opcode
 	pcAdvanceAmt := uint16(instructionBytes[opcode])
+	cycles := opcodeFunc(&stepInfo)
 	if pcAdvanceMask[opcode] == 1 {
 		cpu.PC += pcAdvanceAmt
 	}
-	cycles := opcodeFunc(&stepInfo)
 
 	return cycles, nil
 }
@@ -43,8 +43,7 @@ func (cpu *CPU) GetInstructionInfo() string {
 	args := "---- ----"
 	if bytes == 2 {
 		args = fmt.Sprintf("0x%02x ----", cpu.memory.Read(cpu.PC+1))
-	}
-	if bytes == 3 {
+	} else if bytes == 3 {
 		args = fmt.Sprintf("0x%02x 0x%02x", cpu.memory.Read(cpu.PC+1), cpu.memory.Read(cpu.PC+2))
 	}
 	return fmt.Sprintf("PC: %04x, SP: %04x, Flags: 0x%08b, Regs: [%02x %02x %02x %02x %02x %02x %02x], Opcode: 0b%08b / 0x%02x (%d) - %s,\tArgs [%s]",

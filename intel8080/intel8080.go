@@ -81,7 +81,7 @@ var instructionBytes = []uint8{
 	1, 1, 3, 1, 3, 1, 2, 1, 1, 1, 3, 1, 3, 3, 2, 1,
 }
 
-// Used to avoid altering the PC after calls/jumps
+// Used to avoid altering the PC after calls/jumps/hlt
 var pcAdvanceMask = []uint8{
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -142,7 +142,7 @@ func NewCPU(bus *IOBus, mem *Memory) *CPU {
 func (cpu *CPU) GetVram() []byte {
 	start := uint16(0x2400)
 	size := uint16(0x1C00)
-	return cpu.memory.GetMemorySlice(start, start+size)
+	return cpu.memory.GetSlice(start, start+size)
 }
 
 func (cpu *CPU) Reset() {

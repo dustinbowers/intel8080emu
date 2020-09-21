@@ -9,26 +9,24 @@ func (cpu *CPU) setFlagSZP(result uint8) {
 }
 
 func (cpu *CPU) getOpcodeRegPtr(regIndicator uint8) *uint8 {
-	var ptr *uint8
 	switch regIndicator {
 	case 0b111:
-		ptr = &cpu.A
+		return &cpu.A
 	case 0b000:
-		ptr = &cpu.B
+		return &cpu.B
 	case 0b001:
-		ptr = &cpu.C
+		return &cpu.C
 	case 0b010:
-		ptr = &cpu.D
+		return &cpu.D
 	case 0b011:
-		ptr = &cpu.E
+		return &cpu.E
 	case 0b100:
-		ptr = &cpu.H
+		return &cpu.H
 	case 0b101:
-		ptr = &cpu.L
+		return &cpu.L
 	default:
 		panic(fmt.Sprintf("Bad register pair indicator 0b%03b\n", regIndicator))
 	}
-	return ptr
 }
 
 func (cpu *CPU) getOpcodeArgs(PC uint16) (uint8, uint8) {
@@ -73,11 +71,13 @@ func getParity(b uint8) bool {
 	return (ones & 0b1) == 0
 }
 
+// getOpcodeRP returns the register pair indicator from an opcode
 func getOpcodeRP(opcode uint8) uint8 {
 	// e.g. opcode: 0b00RP0011
 	return (opcode >> 4) & 0b11
 }
 
+// getOpcodeDDDSSS returns the source and destination indicators from an opcode
 func getOpcodeDDDSSS(opcode uint8) (ddd uint8, sss uint8) {
 	// e.g. opcode: 0b01DDDSSS
 	ddd = (opcode >> 3) & 0b111

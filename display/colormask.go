@@ -1,4 +1,4 @@
-package colormask
+package display
 
 type ColorMask struct {
 	Color map[uint]map[uint]uint32
