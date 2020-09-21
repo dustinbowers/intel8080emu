@@ -1,8 +1,8 @@
 .idea
 .DS_Store
-roms/
-build/
-docs/
 *.out
 *.dump
 *.log
+roms/
+build/
+docs/
