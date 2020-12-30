@@ -8,10 +8,10 @@ import (
 type Memory struct {
 	DEBUG          bool
 	bytes          []byte
-	readOnlyBlocks []protectedBlocks
+	readOnlyBlocks []protectedBlock
 }
 
-type protectedBlocks struct {
+type protectedBlock struct {
 	start uint16
 	end   uint16
 }
@@ -23,7 +23,7 @@ func NewMemory(size uint16) *Memory {
 }
 
 func (m *Memory) Protect(startAddress, endAddress uint16) {
-	block := protectedBlocks{startAddress, endAddress}
+	block := protectedBlock{startAddress, endAddress}
 	m.readOnlyBlocks = append(m.readOnlyBlocks, block)
 }
 
@@ -73,6 +73,7 @@ func (m *Memory) Write(address uint16, b byte) {
 }
 
 func (m *Memory) LoadRomFiles(filenames []string, offset uint16, protectRom bool) (uint16, error) {
+	startOffset := offset
 	for _, romPath := range filenames {
 		fmt.Printf("loading %s\n", romPath)
 		data, err := ioutil.ReadFile(romPath)
@@ -86,7 +87,7 @@ func (m *Memory) LoadRomFiles(filenames []string, offset uint16, protectRom bool
 		}
 	}
 	if protectRom == true {
-		m.Protect(0, offset-1)
+		m.Protect(startOffset, offset-1)
 	}
 	return offset, nil
 }
