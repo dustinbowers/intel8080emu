@@ -31,7 +31,7 @@ MICROCOSM ASSOCIATES 8080/8085 CPU DIAGNOSTIC
  ```
 
 ## TODO
-- [ ] Fix Crash bug after Game Over (There's a write to ROM that shouldn't be happening. Cause is unclear)
+- [ ] ((Possibly fixed as of commit 69. Still need to test)) Fix Crash bug after Game Over (There's a write to ROM that shouldn't be happening.)
 - [ ] Set more accurate vertical offsets for the the red/green color bands 
 - [ ] Add sound
 - [ ] Add player 2 support
