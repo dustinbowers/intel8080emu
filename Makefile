@@ -26,8 +26,6 @@ space-invaders:
 FORMAT_DIR=.
 export FORMAT_DIR
 format:
-	# Note: prettier will fail if it does not match any files in the given directory.
-	npx prettier --loglevel warn --write '$(FORMAT_DIR)/**/*.{md,yml,yaml,js,ts,json,html,css,scss,vue}' '!$(FORMAT_DIR)/vendor/**' '!$(FORMAT_DIR)/**/*_pb*' '!$(FORMAT_DIR)/**/package*.json' '!$(FORMAT_DIR)/**/dist/**' '!./partner.pilotfiber.com/**'
 	goimports -w $(FORMAT_DIR)
 
 lint:
