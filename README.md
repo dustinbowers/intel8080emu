@@ -35,7 +35,7 @@ MICROCOSM ASSOCIATES 8080/8085 CPU DIAGNOSTIC
 - [ ] Add sound
 - [ ] Add player 2 support
 
-## Useful Links
+## More info
 https://pastraiser.com//cpu/i8080/i8080_opcodes.html
 
 http://www.classiccmp.org/dunfield/r/8080.txt
