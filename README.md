@@ -16,6 +16,11 @@ An Intel 8080 emulator using SDL, meant for running Space Invaders by Taito.
 |    W    	| P1 shoot                 	|
 |    T    	| Tilt machine (Game Over) 	|
 
+## Build / Run
+
+Build with `make` (you may need to modify the Makefile to build for your particular OS).  
+The binary by default looks for a `.roms/` directory beside it. This directory must contain the files referenced in `main.go` 
+
 ## Testing
 
 ```
