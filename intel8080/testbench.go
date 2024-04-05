@@ -61,6 +61,9 @@ func RunTestRom(testRomPath string) {
 	cpu.inCallback = inCallback
 	cpu.outCallback = outCallback
 
+	// Uncomment for verbose console logging
+	// cpu.DEBUG = true
+
 	// Run the test
 	for {
 		_, _ = cpu.Step()

@@ -78,7 +78,6 @@ func main() {
 	display.SetColorMask(cm)
 
 	vram := cpu.GetVram()
-	_ = display.DrawRotated(vram)
 	fmt.Println("Starting CPU")
 	var holdCycles uint
 	var currCycles uint

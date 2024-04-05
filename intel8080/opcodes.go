@@ -341,7 +341,7 @@ func (cpu *CPU) sbi(info *stepInfo) uint {
 		carryVal = 1
 	}
 	result := uint16(cpu.A) - uint16(db) - carryVal
-
+	cpu.Carry = result>>8 > 0
 	cpu.AuxCarry = ((cpu.A ^ uint8(result) ^ db) & 0b00010000) > 0
 
 	cpu.A = uint8(result)
