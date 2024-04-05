@@ -8,7 +8,6 @@ import (
 var cpu *CPU
 
 func RunTestRom(testRomPath string) {
-
 	ioBus := NewIOBus()
 	memory := NewMemory(0xFFFF)
 	count, err := memory.LoadRomFiles([]string{
@@ -39,8 +38,8 @@ func RunTestRom(testRomPath string) {
 		os.Exit(0)
 	}
 	outCallback := func(info *stepInfo) {
-		//C = 0x02 signals printing the value of register E as an ASCII value
-		//C = 0x09 signals printing the value of memory pointed to by DE until a '$' character is encountered
+		// C = 0x02 signals printing the value of register E as an ASCII value
+		// C = 0x09 signals printing the value of memory pointed to by DE until a '$' character is encountered
 		switch cpu.C {
 		case 0x02:
 			fmt.Printf("%s", string(cpu.E))

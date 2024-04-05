@@ -17,7 +17,7 @@ func (cpu *CPU) Step() (uint, error) {
 		fmt.Println(dbgStr)
 	}
 	if opcodeFunc == nil {
-		return 0, fmt.Errorf("Invalid opcode: 0x%02x\n (%s)", opcode, instructionNames[opcode])
+		return 0, fmt.Errorf("invalid opcode: 0x%02x\n (%s)", opcode, instructionNames[opcode])
 	}
 
 	if cpu.deferInterruptsEnable {

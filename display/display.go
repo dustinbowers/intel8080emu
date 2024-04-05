@@ -2,6 +2,7 @@ package display
 
 import (
 	"fmt"
+
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -47,9 +48,9 @@ func Draw(cells []byte) error {
 	if err != nil {
 		panic(err)
 	}
-	if err != nil {
-		return fmt.Errorf("draw: FillRect failed: %v", err)
-	}
+	// if err != nil {
+	// 	return fmt.Errorf("draw: FillRect failed: %v", err)
+	// }
 
 	for i, b := range cells {
 		y := i / 32
@@ -62,7 +63,7 @@ func Draw(cells []byte) error {
 			// Yes, it is inefficient to re-draw the entire screen when not needed.
 			// It's done to ensure that each frame's blitting ops take approximately
 			// the same amount of time to complete per frame
-			var color uint = uint(b) & (0x1 << (bit))
+			color := uint(b) & (0x1 << (bit))
 			if color > 0 {
 				color = 0xffffffff
 			}
@@ -105,7 +106,7 @@ func DrawRotated(cells []byte) error {
 			// Yes, it is inefficient to re-draw the entire screen when not needed.
 			// It's done to ensure that each frame's blitting ops take approximately
 			// the same amount of time to complete per frame
-			var on uint = uint(b) & (0x1 << (bit))
+			on := uint(b) & (0x1 << (bit))
 
 			var color uint32
 			if on > 0 {

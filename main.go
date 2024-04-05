@@ -73,7 +73,6 @@ func main() {
 	display.Init(screenHeight, screenWidth, screenRows, screenCols)
 	defer display.Cleanup()
 	cm := display.NewColorMask()
-	// TODO: get better Y-offsets for these color bands
 	cm.AddBoxMask(0, screenCols, 48, 64, 0xff00ff00)   // Green
 	cm.AddBoxMask(0, screenCols, 192, 224, 0xffff0000) // Red
 	display.SetColorMask(cm)
@@ -84,7 +83,7 @@ func main() {
 	var holdCycles uint
 	var currCycles uint
 	var interruptType uint = 1
-	sleepTime := 0 * time.Nanosecond
+	sleepTime := time.Duration(0)
 	for running {
 		if holdCycles > 0 {
 			holdCycles--

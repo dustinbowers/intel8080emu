@@ -450,9 +450,9 @@ func (cpu *CPU) pop(info *stepInfo) uint {
 	return 11
 }
 
-///////////////////////
+// /////////////////////
 // CALLs
-///////////////////////
+// /////////////////////
 func (cpu *CPU) call(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 
@@ -466,6 +466,7 @@ func (cpu *CPU) call(info *stepInfo) uint {
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
 	return 17
 }
+
 func (cpu *CPU) cm(info *stepInfo) uint {
 	if cpu.Sign {
 		cpu.call(info)
@@ -475,6 +476,7 @@ func (cpu *CPU) cm(info *stepInfo) uint {
 	}
 	return 11
 }
+
 func (cpu *CPU) cnc(info *stepInfo) uint {
 	if cpu.Carry == false {
 		cpu.call(info)
@@ -484,6 +486,7 @@ func (cpu *CPU) cnc(info *stepInfo) uint {
 	}
 	return 11
 }
+
 func (cpu *CPU) cpe(info *stepInfo) uint {
 	if cpu.Parity {
 		cpu.call(info)
@@ -493,6 +496,7 @@ func (cpu *CPU) cpe(info *stepInfo) uint {
 	}
 	return 11
 }
+
 func (cpu *CPU) cpo(info *stepInfo) uint {
 	if cpu.Parity == false {
 		cpu.call(info)
@@ -502,6 +506,7 @@ func (cpu *CPU) cpo(info *stepInfo) uint {
 	}
 	return 11
 }
+
 func (cpu *CPU) cp(info *stepInfo) uint {
 	if cpu.Sign == false {
 		cpu.call(info)
@@ -511,6 +516,7 @@ func (cpu *CPU) cp(info *stepInfo) uint {
 	}
 	return 11
 }
+
 func (cpu *CPU) cc(info *stepInfo) uint {
 	if cpu.Carry {
 		cpu.call(info)
@@ -520,6 +526,7 @@ func (cpu *CPU) cc(info *stepInfo) uint {
 	}
 	return 11
 }
+
 func (cpu *CPU) cz(info *stepInfo) uint {
 	if cpu.Zero {
 		cpu.call(info)
@@ -529,6 +536,7 @@ func (cpu *CPU) cz(info *stepInfo) uint {
 	}
 	return 11
 }
+
 func (cpu *CPU) cnz(info *stepInfo) uint {
 	if cpu.Zero == false {
 		cpu.call(info)
@@ -539,14 +547,15 @@ func (cpu *CPU) cnz(info *stepInfo) uint {
 	return 11
 }
 
-/////////////////////
+// ///////////////////
 // JMPs
-////////////////////
+// //////////////////
 func (cpu *CPU) jmp(info *stepInfo) uint {
 	lb, hb := cpu.getOpcodeArgs(info.PC)
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
 	return 10
 }
+
 func (cpu *CPU) jz(info *stepInfo) uint {
 	if cpu.Zero {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
@@ -556,6 +565,7 @@ func (cpu *CPU) jz(info *stepInfo) uint {
 	}
 	return 10
 }
+
 func (cpu *CPU) jnz(info *stepInfo) uint {
 	if cpu.Zero == false {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
@@ -565,6 +575,7 @@ func (cpu *CPU) jnz(info *stepInfo) uint {
 	}
 	return 10
 }
+
 func (cpu *CPU) jc(info *stepInfo) uint {
 	if cpu.Carry {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
@@ -574,6 +585,7 @@ func (cpu *CPU) jc(info *stepInfo) uint {
 	}
 	return 10
 }
+
 func (cpu *CPU) jnc(info *stepInfo) uint {
 	if cpu.Carry == false {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
@@ -583,6 +595,7 @@ func (cpu *CPU) jnc(info *stepInfo) uint {
 	}
 	return 10
 }
+
 func (cpu *CPU) jm(info *stepInfo) uint {
 	if cpu.Sign {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
@@ -592,6 +605,7 @@ func (cpu *CPU) jm(info *stepInfo) uint {
 	}
 	return 10
 }
+
 func (cpu *CPU) jp(info *stepInfo) uint {
 	if cpu.Sign == false {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
@@ -601,6 +615,7 @@ func (cpu *CPU) jp(info *stepInfo) uint {
 	}
 	return 10
 }
+
 func (cpu *CPU) jpe(info *stepInfo) uint {
 	if cpu.Parity {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
@@ -610,6 +625,7 @@ func (cpu *CPU) jpe(info *stepInfo) uint {
 	}
 	return 10
 }
+
 func (cpu *CPU) jpo(info *stepInfo) uint {
 	if cpu.Parity == false {
 		lb, hb := cpu.getOpcodeArgs(info.PC)
@@ -743,6 +759,7 @@ func (cpu *CPU) ret(_ *stepInfo) uint {
 	cpu.PC = (uint16(hb) << 8) | uint16(lb)
 	return 10
 }
+
 func (cpu *CPU) rc(info *stepInfo) uint {
 	if cpu.Carry {
 		cpu.ret(info)
@@ -752,6 +769,7 @@ func (cpu *CPU) rc(info *stepInfo) uint {
 	}
 	return 5
 }
+
 func (cpu *CPU) rm(info *stepInfo) uint {
 	if cpu.Sign {
 		cpu.ret(info)
@@ -761,6 +779,7 @@ func (cpu *CPU) rm(info *stepInfo) uint {
 	}
 	return 5
 }
+
 func (cpu *CPU) rnc(info *stepInfo) uint {
 	if cpu.Carry == false {
 		cpu.ret(info)
@@ -770,6 +789,7 @@ func (cpu *CPU) rnc(info *stepInfo) uint {
 	}
 	return 5
 }
+
 func (cpu *CPU) rnz(info *stepInfo) uint {
 	if cpu.Zero == false {
 		cpu.ret(info)
@@ -779,6 +799,7 @@ func (cpu *CPU) rnz(info *stepInfo) uint {
 	}
 	return 5
 }
+
 func (cpu *CPU) rz(info *stepInfo) uint {
 	if cpu.Zero {
 		cpu.ret(info)
@@ -788,6 +809,7 @@ func (cpu *CPU) rz(info *stepInfo) uint {
 	}
 	return 5
 }
+
 func (cpu *CPU) rp(info *stepInfo) uint {
 	if cpu.Sign == false {
 		cpu.ret(info)
@@ -797,6 +819,7 @@ func (cpu *CPU) rp(info *stepInfo) uint {
 	}
 	return 5
 }
+
 func (cpu *CPU) rpe(info *stepInfo) uint {
 	if cpu.Parity == true {
 		cpu.ret(info)
@@ -806,6 +829,7 @@ func (cpu *CPU) rpe(info *stepInfo) uint {
 	}
 	return 50
 }
+
 func (cpu *CPU) rpo(info *stepInfo) uint {
 	if cpu.Parity == false {
 		cpu.ret(info)
@@ -816,9 +840,9 @@ func (cpu *CPU) rpo(info *stepInfo) uint {
 	return 5
 }
 
-//////////////////
+// ////////////////
 // Rotates
-//////////////////
+// ////////////////
 // RLC       00000111          C       Rotate A left
 func (cpu *CPU) rlc(_ *stepInfo) uint {
 	highBit := cpu.A >> 7

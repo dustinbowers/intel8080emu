@@ -7,7 +7,7 @@ import (
 func TestGetOpcodeRegPtr(t *testing.T) {
 	ioBus := NewIOBus()
 	memory := NewMemory(0xFFFF)
-	var tCpu = NewCPU(ioBus, memory)
+	tCpu := NewCPU(ioBus, memory)
 	tCpu.H = 0xAA
 	tCpu.L = 0xBB
 	tests := []struct {
@@ -34,7 +34,7 @@ func TestGetOpcodeRegPtr(t *testing.T) {
 func TestGetOpcodeArgs(t *testing.T) {
 	ioBus := NewIOBus()
 	memory := NewMemory(0xFFFF)
-	var tCpu = NewCPU(ioBus, memory)
+	tCpu := NewCPU(ioBus, memory)
 	PC := uint16(100)
 	tCpu.PC = PC
 	memory.Write(PC+0, 0xAA)
@@ -55,7 +55,7 @@ func TestGetOpcodeArgs(t *testing.T) {
 func TestSetProgramStatus(t *testing.T) {
 	ioBus := NewIOBus()
 	memory := NewMemory(0xFFFF)
-	var tCpu = NewCPU(ioBus, memory)
+	tCpu := NewCPU(ioBus, memory)
 	tests := []struct {
 		inPsw                                                   uint8
 		wantSign, wantZero, wantAuxCarry, wantParity, wantCarry bool
@@ -84,7 +84,7 @@ func TestSetProgramStatus(t *testing.T) {
 func TestGetProgramStatus(t *testing.T) {
 	ioBus := NewIOBus()
 	memory := NewMemory(0xFFFF)
-	var tCpu = NewCPU(ioBus, memory)
+	tCpu := NewCPU(ioBus, memory)
 	tests := []struct {
 		inSign     bool
 		inZero     bool

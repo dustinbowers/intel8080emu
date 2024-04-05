@@ -2,7 +2,7 @@ package intel8080
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 type Memory struct {
@@ -44,7 +44,7 @@ func (m *Memory) GetMemoryCopy() []byte {
 func (m *Memory) Read(address uint16) byte {
 	byte := m.bytes[address]
 	if m.DEBUG {
-		//fmt.Printf("READ 0b%08b / 0x%02x <- (0x%04x)\n", byte, byte, address)
+		// fmt.Printf("READ 0b%08b / 0x%02x <- (0x%04x)\n", byte, byte, address)
 	}
 	return byte
 }
@@ -66,7 +66,7 @@ func (m *Memory) Write(address uint16, b byte) {
 			y := address / 32
 			fmt.Printf("VRAM WRITE 0b%08b / 0x%02x -> (0x%04x) (X: %d, Y: %d)\n", b, b, address, x, y)
 		} else {
-			//fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
+			// fmt.Printf("WRITE 0b%08b / 0x%02x -> (0x%04x)\n", b, b, address)
 		}
 	}
 	m.bytes[address] = b
@@ -76,7 +76,7 @@ func (m *Memory) LoadRomFiles(filenames []string, offset uint16, protectRom bool
 	startOffset := offset
 	for _, romPath := range filenames {
 		fmt.Printf("loading %s\n", romPath)
-		data, err := ioutil.ReadFile(romPath)
+		data, err := os.ReadFile(romPath)
 		if err != nil {
 			return 0, fmt.Errorf("loadRom: failed reading file: %v", err)
 		}
@@ -86,7 +86,7 @@ func (m *Memory) LoadRomFiles(filenames []string, offset uint16, protectRom bool
 			offset++
 		}
 	}
-	if protectRom == true {
+	if protectRom {
 		m.Protect(startOffset, offset-1)
 	}
 	return offset, nil

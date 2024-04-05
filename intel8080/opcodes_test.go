@@ -5,11 +5,11 @@ import (
 )
 
 func TestNop(t *testing.T) {
-	var ioBus = NewIOBus()
-	var memory = NewMemory(0xFF)
-	var tCpu = NewCPU(ioBus, memory)
+	ioBus := NewIOBus()
+	memory := NewMemory(0xFF)
+	tCpu := NewCPU(ioBus, memory)
 	tCpu.PC = 0x4
-	var opcode uint8 = 00000000
+	var opcode uint8 = 0o0000000
 	memory.Write(tCpu.PC, opcode)
 
 	cycles, err := tCpu.Step()
@@ -24,13 +24,13 @@ func TestNop(t *testing.T) {
 }
 
 func TestAci(t *testing.T) {
-	var ioBus = NewIOBus()
-	var memory = NewMemory(0xFF)
-	var tCpu = NewCPU(ioBus, memory)
+	ioBus := NewIOBus()
+	memory := NewMemory(0xFF)
+	tCpu := NewCPU(ioBus, memory)
 	var PC uint16 = 0x4
 	var opcode uint8 = 0b11001110
 	var immediate uint8 = 0x42
-	var stepInfo = stepInfo{PC, opcode}
+	stepInfo := stepInfo{PC, opcode}
 
 	tCpu.PC = PC
 	tCpu.A = 0x14
@@ -56,12 +56,12 @@ func TestAci(t *testing.T) {
 }
 
 func TestDaa(t *testing.T) {
-	var ioBus = NewIOBus()
-	var memory = NewMemory(0xFF)
-	var tCpu = NewCPU(ioBus, memory)
+	ioBus := NewIOBus()
+	memory := NewMemory(0xFF)
+	tCpu := NewCPU(ioBus, memory)
 	var PC uint16 = 0x4
 	var opcode uint8 = 0b00100111
-	var stepInfo = stepInfo{PC, opcode}
+	stepInfo := stepInfo{PC, opcode}
 
 	tCpu.PC = PC
 	tCpu.A = 0x9b
