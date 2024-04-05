@@ -3,18 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/veandco/go-sdl2/sdl"
-	"intel8080/display"
-	"intel8080/intel8080"
 	"log"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/veandco/go-sdl2/sdl"
+	"intel8080/display"
+	"intel8080/intel8080"
 )
 
-var (
-	testRomPath = flag.String("test", "", "Run a test ROM")
-)
+var testRomPath = flag.String("test", "", "Run a test ROM")
 
 var cpu *intel8080.CPU
 
@@ -75,8 +74,8 @@ func main() {
 	defer display.Cleanup()
 	cm := display.NewColorMask()
 	// TODO: get better Y-offsets for these color bands
-	cm.AddBoxMask(0, screenCols, 48, 64, 0xff00ff00)
-	cm.AddBoxMask(0, screenCols, 195, 224, 0xffff0000)
+	cm.AddBoxMask(0, screenCols, 48, 64, 0xff00ff00)   // Green
+	cm.AddBoxMask(0, screenCols, 192, 224, 0xffff0000) // Red
 	display.SetColorMask(cm)
 
 	vram := cpu.GetVram()
@@ -85,8 +84,8 @@ func main() {
 	var holdCycles uint
 	var currCycles uint
 	var interruptType uint = 1
-	sleepTime := (1000 / 2500) * time.Millisecond // TODO: fix bug here (sleepTime is being set to 0)
-	for running != false {
+	sleepTime := 0 * time.Nanosecond
+	for running {
 		if holdCycles > 0 {
 			holdCycles--
 			time.Sleep(sleepTime)
@@ -160,10 +159,10 @@ func main() {
 								memory.DEBUG = true
 							}
 						case sdl.K_COMMA:
-							sleepTime += 1 * time.Millisecond
+							sleepTime += 1 * time.Nanosecond
 							fmt.Printf("sleepTime: %d\n", sleepTime)
 						case sdl.K_PERIOD:
-							sleepTime -= 1 * time.Millisecond
+							sleepTime -= 1 * time.Nanosecond
 							if sleepTime < 0 {
 								sleepTime = 0
 							}
@@ -173,7 +172,6 @@ func main() {
 				case *sdl.QuitEvent:
 					println("Quit")
 					running = false
-					break
 				}
 			}
 		}
@@ -182,15 +180,15 @@ func main() {
 }
 
 func dumpCoreToFile(filename string, memory *intel8080.Memory) error {
-	f, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
 	if err != nil {
-		return fmt.Errorf("Failed to open file: %v\n", err)
+		return fmt.Errorf("failed to open file: %v", err)
 	}
 	defer f.Close()
 
 	_, err = f.Write(memory.GetMemoryCopy())
 	if err != nil {
-		return fmt.Errorf("Writing to file failed: %v\n", err)
+		return fmt.Errorf("writing to file failed: %v", err)
 	}
 	return nil
 }
