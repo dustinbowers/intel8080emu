@@ -2,6 +2,8 @@
 
 An Intel 8080 emulator using SDL, meant for running Space Invaders by Taito.
 
+![Build Status](https://github.com/dustinbowers/intel8080emu/actions/workflows/build.yml/badge.svg)
+
 ## Gameplay 
 
 <img src="https://github.com/dustinbowers/intel8080emu/blob/master/screens/gameplay.gif" width="40%">
@@ -15,6 +17,16 @@ An Intel 8080 emulator using SDL, meant for running Space Invaders by Taito.
 |   A/D   	| P1 move Left/Right       	|
 |    W    	| P1 shoot                 	|
 |    T    	| Tilt machine (Game Over) 	|
+
+
+
+## Requirements:
+
+Install necessary dependencies:
+
+**Mac:** `brew install sdl2{,_image,_mixer,_ttf,_gfx} pkg-config`
+
+**Linux:** `sudo apt install -y libsdl2{,-image,-mixer,-ttf,-gfx}-dev`
 
 ## Build / Run
 
@@ -39,7 +51,7 @@ MICROCOSM ASSOCIATES 8080/8085 CPU DIAGNOSTIC
 - [ ] Add sound
 - [ ] Add player 2 support
 
-## More info
+## Resources
 https://pastraiser.com//cpu/i8080/i8080_opcodes.html
 
 http://www.classiccmp.org/dunfield/r/8080.txt
