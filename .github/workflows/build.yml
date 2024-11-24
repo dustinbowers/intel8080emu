@@ -1,5 +1,9 @@
 name: Go
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   build:
@@ -11,9 +15,16 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.23.x"
-      - name: Install dependencies
+      - name: Install system dependencies
+        run: sudo apt-get install -y libsdl2{,-image,-mixer,-ttf,-gfx}-dev
+      - name: Install Go dependencies
         run: go get .
       - name: Build
         run: go build -v ./...
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Test with the Go CLI
         run: go test
